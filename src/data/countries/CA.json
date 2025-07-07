@@ -1,0 +1,83 @@
+{
+  "stores": [
+    {
+      "id": "store-ca-1",
+      "name": "Walmart Canada Toronto",
+      "latitude": 43.6532,
+      "longitude": -79.3832,
+      "coordinates": [
+        -79.3832,
+        43.6532
+      ],
+      "risk": "Medium",
+      "type": "Supercentre",
+      "monthlyLoss": 9000,
+      "deliveryRadius": 30,
+      "connectedSuppliers": [
+        "supplier-ca-1",
+        "supplier-ca-2"
+      ]
+    },
+    {
+      "id": "store-ca-2",
+      "name": "Walmart Canada Vancouver",
+      "latitude": 49.2827,
+      "longitude": -123.1207,
+      "coordinates": [
+        -123.1207,
+        49.2827
+      ],
+      "risk": "Low",
+      "type": "Discount Store",
+      "monthlyLoss": 4000,
+      "deliveryRadius": 20,
+      "connectedSuppliers": [
+        "supplier-ca-3"
+      ]
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "supplier-ca-1",
+      "name": "Canadian Produce Co.",
+      "latitude": 43.6532,
+      "longitude": -79.3832,
+      "coordinates": [
+        -79.3832,
+        43.6532
+      ],
+      "category": "Produce",
+      "risk": "Medium",
+      "supplyScore": 72,
+      "lossAmount": 3500
+    },
+    {
+      "id": "supplier-ca-2",
+      "name": "Canadian Seafood Inc.",
+      "latitude": 49.2827,
+      "longitude": -123.1207,
+      "coordinates": [
+        -123.1207,
+        49.2827
+      ],
+      "category": "Seafood",
+      "risk": "Low",
+      "supplyScore": 80,
+      "lossAmount": 1800
+    },
+    {
+      "id": "supplier-ca-3",
+      "name": "Canadian Electronics Dist.",
+      "latitude": 45.5017,
+      "longitude": -73.5673,
+      "coordinates": [
+        -73.5673,
+        45.5017
+      ],
+      "category": "Electronics",
+      "risk": "High",
+      "supplyScore": 60,
+      "lossAmount": 5500
+    }
+  ]
+}

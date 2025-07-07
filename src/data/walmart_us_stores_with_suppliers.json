@@ -1,0 +1,764 @@
+{
+  "stores": [
+    {
+      "id": "US001",
+      "location": "New York, NY",
+      "latitude": 40.7128,
+      "longitude": -74.0060,
+      "performanceScore": 85,
+      "issues": ["Stockouts", "Defective Products"],
+      "suppliers": [
+        {
+          "id": "SUP001",
+          "name": "Green Fields",
+          "supplies": ["Vegetables", "Snacks"],
+          "latitude": 40.7500,
+          "longitude": -73.9700,
+          "performanceScore": 75,
+          "parameters": {
+            "sustainabilityScore": 90,
+            "carbonFootprint": 0.05,
+            "packagingQuality": 95,
+            "geographicalProximity": 15,
+            "compliance": 100,
+            "consumerTrends": 0.8,
+            "riskScore": 20,
+            "localRelevance": 0.7,
+            "productQuality": 85,
+            "availability": 90,
+            "profitMargin": 15,
+            "brandRecognition": 60
+          }
+        },
+        {
+          "id": "SUP002",
+          "name": "Local Dairy Co",
+          "supplies": ["Dairy", "Beverages"],
+          "latitude": 40.7000,
+          "longitude": -74.0100,
+          "performanceScore": 80,
+          "parameters": {
+            "sustainabilityScore": 70,
+            "carbonFootprint": 0.12,
+            "packagingQuality": 80,
+            "geographicalProximity": 10,
+            "compliance": 100,
+            "consumerTrends": 0.9,
+            "riskScore": 25,
+            "localRelevance": 0.95,
+            "productQuality": 88,
+            "availability": 92,
+            "profitMargin": 12,
+            "brandRecognition": 50
+          }
+        },
+        {
+          "id": "SUP003",
+          "name": "Quality Farms",
+          "supplies": ["Fruits", "Bakery"],
+          "latitude": 40.7800,
+          "longitude": -73.9500,
+          "performanceScore": 77,
+          "parameters": {
+            "sustainabilityScore": 65,
+            "carbonFootprint": 0.1,
+            "packagingQuality": 90,
+            "geographicalProximity": 20,
+            "compliance": 100,
+            "consumerTrends": 0.8,
+            "riskScore": 20,
+            "localRelevance": 0.75,
+            "productQuality": 98,
+            "availability": 90,
+            "profitMargin": 18,
+            "brandRecognition": 70
+          }
+        }
+      ]
+    },
+    {
+      "id": "US002",
+      "location": "Los Angeles, CA",
+      "latitude": 34.0522,
+      "longitude": -118.2437,
+      "performanceScore": 78,
+      "issues": ["Late Deliveries", "Spoilage"],
+      "suppliers": [
+        {
+          "id": "SUP004",
+          "name": "Eco Growers",
+          "supplies": ["Vegetables", "Fruits"],
+          "latitude": 34.0700,
+          "longitude": -118.2500,
+          "performanceScore": 70,
+          "parameters": {
+            "sustainabilityScore": 85,
+            "carbonFootprint": 0.09,
+            "packagingQuality": 82,
+            "geographicalProximity": 18,
+            "compliance": 100,
+            "consumerTrends": 0.78,
+            "riskScore": 28,
+            "localRelevance": 0.88,
+            "productQuality": 87,
+            "availability": 93,
+            "profitMargin": 16,
+            "brandRecognition": 55
+          }
+        },
+        {
+          "id": "SUP005",
+          "name": "Profit Kings",
+          "supplies": ["Snacks", "Beverages"],
+          "latitude": 34.0300,
+          "longitude": -118.2800,
+          "performanceScore": 85,
+          "parameters": {
+            "sustainabilityScore": 55,
+            "carbonFootprint": 0.14,
+            "packagingQuality": 78,
+            "geographicalProximity": 22,
+            "compliance": 100,
+            "consumerTrends": 0.72,
+            "riskScore": 32,
+            "localRelevance": 0.65,
+            "productQuality": 95,
+            "availability": 88,
+            "profitMargin": 22,
+            "brandRecognition": 45
+          }
+        },
+        {
+          "id": "SUP006",
+          "name": "West Coast Brands",
+          "supplies": ["Clothing", "Electronics"],
+          "latitude": 34.0900,
+          "longitude": -118.2200,
+          "performanceScore": 90,
+          "parameters": {
+            "sustainabilityScore": 75,
+            "carbonFootprint": 0.07,
+            "packagingQuality": 88,
+            "geographicalProximity": 25,
+            "compliance": 100,
+            "consumerTrends": 0.82,
+            "riskScore": 22,
+            "localRelevance": 0.8,
+            "productQuality": 92,
+            "availability": 94,
+            "profitMargin": 20,
+            "brandRecognition": 65
+          }
+        }
+      ]
+    },
+    {
+      "id": "US003",
+      "location": "Chicago, IL",
+      "latitude": 41.8781,
+      "longitude": -87.6298,
+      "performanceScore": 82,
+      "issues": ["Overstocking", "Quality Issues"],
+      "suppliers": [
+        {
+          "id": "SUP007",
+          "name": "Midwest Harvest",
+          "supplies": ["Vegetables", "Grains"],
+          "latitude": 41.9000,
+          "longitude": -87.6500,
+          "performanceScore": 78,
+          "parameters": {
+            "sustainabilityScore": 80,
+            "carbonFootprint": 0.11,
+            "packagingQuality": 85,
+            "geographicalProximity": 12,
+            "compliance": 100,
+            "consumerTrends": 0.85,
+            "riskScore": 18,
+            "localRelevance": 0.9,
+            "productQuality": 82,
+            "availability": 95,
+            "profitMargin": 14,
+            "brandRecognition": 55
+          }
+        },
+        {
+          "id": "SUP008",
+          "name": "Quality Goods Inc",
+          "supplies": ["Canned Goods", "Snacks"],
+          "latitude": 41.8500,
+          "longitude": -87.6800,
+          "performanceScore": 80,
+          "parameters": {
+            "sustainabilityScore": 65,
+            "carbonFootprint": 0.13,
+            "packagingQuality": 78,
+            "geographicalProximity": 15,
+            "compliance": 100,
+            "consumerTrends": 0.7,
+            "riskScore": 25,
+            "localRelevance": 0.85,
+            "productQuality": 87,
+            "availability": 90,
+            "profitMargin": 16,
+            "brandRecognition": 60
+          }
+        },
+        {
+          "id": "SUP009",
+          "name": "Bulk Suppliers",
+          "supplies": ["Dry Goods", "Beverages"],
+          "latitude": 41.8800,
+          "longitude": -87.6200,
+          "performanceScore": 75,
+          "parameters": {
+            "sustainabilityScore": 60,
+            "carbonFootprint": 0.16,
+            "packagingQuality": 70,
+            "geographicalProximity": 20,
+            "compliance": 95,
+            "consumerTrends": 0.65,
+            "riskScore": 30,
+            "localRelevance": 0.7,
+            "productQuality": 80,
+            "availability": 88,
+            "profitMargin": 10,
+            "brandRecognition": 45
+          }
+        }
+      ]
+    },
+    {
+      "id": "US004",
+      "location": "Houston, TX",
+      "latitude": 29.7604,
+      "longitude": -95.3698,
+      "performanceScore": 88,
+      "issues": ["Logistics Delays", "Customer Complaints"],
+      "suppliers": [
+        {
+          "id": "SUP010",
+          "name": "Texas Fresh",
+          "supplies": ["Fruits", "Vegetables"],
+          "latitude": 29.7800,
+          "longitude": -95.3900,
+          "performanceScore": 82,
+          "parameters": {
+            "sustainabilityScore": 75,
+            "carbonFootprint": 0.08,
+            "packagingQuality": 90,
+            "geographicalProximity": 10,
+            "compliance": 100,
+            "consumerTrends": 0.9,
+            "riskScore": 15,
+            "localRelevance": 0.95,
+            "productQuality": 89,
+            "availability": 94,
+            "profitMargin": 17,
+            "brandRecognition": 65
+          }
+        },
+        {
+          "id": "SUP011",
+          "name": "Logistics Plus",
+          "supplies": ["Meat", "Dairy"],
+          "latitude": 29.7500,
+          "longitude": -95.3600,
+          "performanceScore": 85,
+          "parameters": {
+            "sustainabilityScore": 70,
+            "carbonFootprint": 0.1,
+            "packagingQuality": 85,
+            "geographicalProximity": 15,
+            "compliance": 100,
+            "consumerTrends": 0.85,
+            "riskScore": 20,
+            "localRelevance": 0.8,
+            "productQuality": 87,
+            "availability": 91,
+            "profitMargin": 20,
+            "brandRecognition": 50
+          }
+        },
+        {
+          "id": "SUP012",
+          "name": "Customer Choice",
+          "supplies": ["Snacks", "Beverages"],
+          "latitude": 29.7700,
+          "longitude": -95.3800,
+          "performanceScore": 80,
+          "parameters": {
+            "sustainabilityScore": 60,
+            "carbonFootprint": 0.15,
+            "packagingQuality": 75,
+            "geographicalProximity": 25,
+            "compliance": 100,
+            "consumerTrends": 0.75,
+            "riskScore": 25,
+            "localRelevance": 0.6,
+            "productQuality": 83,
+            "availability": 89,
+            "profitMargin": 13,
+            "brandRecognition": 70
+          }
+        }
+      ]
+    },
+    {
+      "id": "US005",
+      "location": "Miami, FL",
+      "latitude": 25.7617,
+      "longitude": -80.1918,
+      "performanceScore": 76,
+      "issues": ["Seasonal Shortages", "Inventory Errors"],
+      "suppliers": [
+        {
+          "id": "SUP013",
+          "name": "Tropical Harvest",
+          "supplies": ["Fruits", "Seafood"],
+          "latitude": 25.7800,
+          "longitude": -80.2100,
+          "performanceScore": 73,
+          "parameters": {
+            "sustainabilityScore": 80,
+            "carbonFootprint": 0.07,
+            "packagingQuality": 88,
+            "geographicalProximity": 12,
+            "compliance": 100,
+            "consumerTrends": 0.9,
+            "riskScore": 22,
+            "localRelevance": 0.92,
+            "productQuality": 86,
+            "availability": 87,
+            "profitMargin": 14,
+            "brandRecognition": 60
+          }
+        },
+        {
+          "id": "SUP014",
+          "name": "Seasonal Goods",
+          "supplies": ["Beverages", "Snacks"],
+          "latitude": 25.7500,
+          "longitude": -80.2000,
+          "performanceScore": 70,
+          "parameters": {
+            "sustainabilityScore": 65,
+            "carbonFootprint": 0.14,
+            "packagingQuality": 80,
+            "geographicalProximity": 15,
+            "compliance": 95,
+            "consumerTrends": 0.7,
+            "riskScore": 30,
+            "localRelevance": 0.85,
+            "productQuality": 82,
+            "availability": 85,
+            "profitMargin": 11,
+            "brandRecognition": 55
+          }
+        },
+        {
+          "id": "SUP015",
+          "name": "Inventory Masters",
+          "supplies": ["Dry Goods", "Canned Goods"],
+          "latitude": 25.7700,
+          "longitude": -80.1800,
+          "performanceScore": 74,
+          "parameters": {
+            "sustainabilityScore": 70,
+            "carbonFootprint": 0.12,
+            "packagingQuality": 85,
+            "geographicalProximity": 20,
+            "compliance": 100,
+            "consumerTrends": 0.8,
+            "riskScore": 18,
+            "localRelevance": 0.75,
+            "productQuality": 88,
+            "availability": 90,
+            "profitMargin": 16,
+            "brandRecognition": 50
+          }
+        }
+      ]
+    },
+    {
+      "id": "US006",
+      "location": "Seattle, WA",
+      "latitude": 47.6062,
+      "longitude": -122.3321,
+      "performanceScore": 90,
+      "issues": ["High Demand Spikes", "Supply Chain Bottlenecks"],
+      "suppliers": [
+        {
+          "id": "SUP016",
+          "name": "Pacific Fresh",
+          "supplies": ["Vegetables", "Fruits"],
+          "latitude": 47.6200,
+          "longitude": -122.3500,
+          "performanceScore": 88,
+          "parameters": {
+            "sustainabilityScore": 95,
+            "carbonFootprint": 0.04,
+            "packagingQuality": 92,
+            "geographicalProximity": 10,
+            "compliance": 100,
+            "consumerTrends": 0.95,
+            "riskScore": 10,
+            "localRelevance": 0.9,
+            "productQuality": 94,
+            "availability": 96,
+            "profitMargin": 18,
+            "brandRecognition": 75
+          }
+        },
+        {
+          "id": "SUP017",
+          "name": "Tech Supply Co",
+          "supplies": ["Electronics", "Appliances"],
+          "latitude": 47.6000,
+          "longitude": -122.3100,
+          "performanceScore": 92,
+          "parameters": {
+            "sustainabilityScore": 85,
+            "carbonFootprint": 0.06,
+            "packagingQuality": 90,
+            "geographicalProximity": 15,
+            "compliance": 100,
+            "consumerTrends": 0.88,
+            "riskScore": 15,
+            "localRelevance": 0.85,
+            "productQuality": 97,
+            "availability": 95,
+            "profitMargin": 20,
+            "brandRecognition": 80
+          }
+        },
+        {
+          "id": "SUP018",
+          "name": "Chain Flow",
+          "supplies": ["Dairy", "Meat"],
+          "latitude": 47.5900,
+          "longitude": -122.3400,
+          "performanceScore": 85,
+          "parameters": {
+            "sustainabilityScore": 70,
+            "carbonFootprint": 0.1,
+            "packagingQuality": 85,
+            "geographicalProximity": 20,
+            "compliance": 100,
+            "consumerTrends": 0.8,
+            "riskScore": 20,
+            "localRelevance": 0.75,
+            "productQuality": 90,
+            "availability": 92,
+            "profitMargin": 15,
+            "brandRecognition": 60
+          }
+        }
+      ]
+    },
+    {
+      "id": "US007",
+      "location": "Atlanta, GA",
+      "latitude": 33.7490,
+      "longitude": -84.3880,
+      "performanceScore": 80,
+      "issues": ["Staffing Shortages", "Product Returns"],
+      "suppliers": [
+        {
+          "id": "SUP019",
+          "name": "Southern Crops",
+          "supplies": ["Vegetables", "Fruits"],
+          "latitude": 33.7700,
+          "longitude": -84.3700,
+          "performanceScore": 78,
+          "parameters": {
+            "sustainabilityScore": 75,
+            "carbonFootprint": 0.09,
+            "packagingQuality": 87,
+            "geographicalProximity": 12,
+            "compliance": 100,
+            "consumerTrends": 0.85,
+            "riskScore": 22,
+            "localRelevance": 0.9,
+            "productQuality": 86,
+            "availability": 91,
+            "profitMargin": 13,
+            "brandRecognition": 55
+          }
+        },
+        {
+          "id": "SUP020",
+          "name": "Return Solutions",
+          "supplies": ["Snacks", "Canned Goods"],
+          "latitude": 33.7300,
+          "longitude": -84.4000,
+          "performanceScore": 80,
+          "parameters": {
+            "sustainabilityScore": 65,
+            "carbonFootprint": 0.13,
+            "packagingQuality": 80,
+            "geographicalProximity": 15,
+            "compliance": 95,
+            "consumerTrends": 0.7,
+            "riskScore": 25,
+            "localRelevance": 0.8,
+            "productQuality": 84,
+            "availability": 88,
+            "profitMargin": 14,
+            "brandRecognition": 60
+          }
+        },
+        {
+          "id": "SUP021",
+          "name": "Staff Support Co",
+          "supplies": ["Beverages", "Dry Goods"],
+          "latitude": 33.7600,
+          "longitude": -84.3800,
+          "performanceScore": 75,
+          "parameters": {
+            "sustainabilityScore": 70,
+            "carbonFootprint": 0.11,
+            "packagingQuality": 85,
+            "geographicalProximity": 20,
+            "compliance": 100,
+            "consumerTrends": 0.75,
+            "riskScore": 18,
+            "localRelevance": 0.85,
+            "productQuality": 89,
+            "availability": 90,
+            "profitMargin": 16,
+            "brandRecognition": 50
+          }
+        }
+      ]
+    },
+    {
+      "id": "US008",
+      "location": "Denver, CO",
+      "latitude": 39.7392,
+      "longitude": -104.9903,
+      "performanceScore": 83,
+      "issues": ["Weather Disruptions", "Delivery Delays"],
+      "suppliers": [
+        {
+          "id": "SUP022",
+          "name": "Rocky Mountain Fresh",
+          "supplies": ["Fruits", "Vegetables"],
+          "latitude": 39.7500,
+          "longitude": -105.0000,
+          "performanceScore": 80,
+          "parameters": {
+            "sustainabilityScore": 80,
+            "carbonFootprint": 0.08,
+            "packagingQuality": 90,
+            "geographicalProximity": 10,
+            "compliance": 100,
+            "consumerTrends": 0.9,
+            "riskScore": 15,
+            "localRelevance": 0.95,
+            "productQuality": 88,
+            "availability": 93,
+            "profitMargin": 17,
+            "brandRecognition": 60
+          }
+        },
+        {
+          "id": "SUP023",
+          "name": "Weatherproof Goods",
+          "supplies": ["Canned Goods", "Dry Goods"],
+          "latitude": 39.7300,
+          "longitude": -104.9800,
+          "performanceScore": 82,
+          "parameters": {
+            "sustainabilityScore": 70,
+            "carbonFootprint": 0.12,
+            "packagingQuality": 85,
+            "geographicalProximity": 15,
+            "compliance": 100,
+            "consumerTrends": 0.8,
+            "riskScore": 20,
+            "localRelevance": 0.85,
+            "productQuality": 86,
+            "availability": 91,
+            "profitMargin": 15,
+            "brandRecognition": 55
+          }
+        },
+        {
+          "id": "SUP024",
+          "name": "Delivery Experts",
+          "supplies": ["Meat", "Dairy"],
+          "latitude": 39.7400,
+          "longitude": -104.9700,
+          "performanceScore": 77,
+          "parameters": {
+            "sustainabilityScore": 65,
+            "carbonFootprint": 0.15,
+            "packagingQuality": 80,
+            "geographicalProximity": 20,
+            "compliance": 95,
+            "consumerTrends": 0.75,
+            "riskScore": 25,
+            "localRelevance": 0.7,
+            "productQuality": 83,
+            "availability": 89,
+            "profitMargin": 12,
+            "brandRecognition": 50
+          }
+        }
+      ]
+    },
+    {
+      "id": "US009",
+      "location": "Phoenix, AZ",
+      "latitude": 33.4484,
+      "longitude": -112.0740,
+      "performanceScore": 79,
+      "issues": ["Heat-Related Spoilage", "Low Stock Turnover"],
+      "suppliers": [
+        {
+          "id": "SUP025",
+          "name": "Desert Harvest",
+          "supplies": ["Fruits", "Vegetables"],
+          "latitude": 33.4500,
+          "longitude": -112.0900,
+          "performanceScore": 75,
+          "parameters": {
+            "sustainabilityScore": 70,
+            "carbonFootprint": 0.1,
+            "packagingQuality": 85,
+            "geographicalProximity": 15,
+            "compliance": 100,
+            "consumerTrends": 0.8,
+            "riskScore": 22,
+            "localRelevance": 0.9,
+            "productQuality": 87,
+            "availability": 88,
+            "profitMargin": 14,
+            "brandRecognition": 55
+          }
+        },
+        {
+          "id": "SUP026",
+          "name": "Cool Pack Co",
+          "supplies": ["Dairy", "Beverages"],
+          "latitude": 33.4400,
+          "longitude": -112.0700,
+          "performanceScore": 78,
+          "parameters": {
+            "sustainabilityScore": 65,
+            "carbonFootprint": 0.13,
+            "packagingQuality": 90,
+            "geographicalProximity": 20,
+            "compliance": 95,
+            "consumerTrends": 0.75,
+            "riskScore": 20,
+            "localRelevance": 0.85,
+            "productQuality": 91,
+            "availability": 90,
+            "profitMargin": 16,
+            "brandRecognition": 60
+          }
+        },
+        {
+          "id": "SUP027",
+          "name": "Stock Flow",
+          "supplies": ["Snacks", "Canned Goods"],
+          "latitude": 33.4600,
+          "longitude": -112.0800,
+          "performanceScore": 72,
+          "parameters": {
+            "sustainabilityScore": 60,
+            "carbonFootprint": 0.15,
+            "packagingQuality": 80,
+            "geographicalProximity": 25,
+            "compliance": 100,
+            "consumerTrends": 0.7,
+            "riskScore": 28,
+            "localRelevance": 0.65,
+            "productQuality": 82,
+            "availability": 85,
+            "profitMargin": 10,
+            "brandRecognition": 45
+          }
+        }
+      ]
+    },
+    {
+      "id": "US010",
+      "location": "Boston, MA",
+      "latitude": 42.3601,
+      "longitude": -71.0589,
+      "performanceScore": 87,
+      "issues": ["High Competition", "Pricing Pressure"],
+      "suppliers": [
+        {
+          "id": "SUP028",
+          "name": "New England Farms",
+          "supplies": ["Vegetables", "Fruits"],
+          "latitude": 42.3700,
+          "longitude": -71.0700,
+          "performanceScore": 84,
+          "parameters": {
+            "sustainabilityScore": 85,
+            "carbonFootprint": 0.06,
+            "packagingQuality": 92,
+            "geographicalProximity": 10,
+            "compliance": 100,
+            "consumerTrends": 0.9,
+            "riskScore": 12,
+            "localRelevance": 0.95,
+            "productQuality": 93,
+            "availability": 96,
+            "profitMargin": 19,
+            "brandRecognition": 70
+          }
+        },
+        {
+          "id": "SUP029",
+          "name": "Price Leader Inc",
+          "supplies": ["Snacks", "Beverages"],
+          "latitude": 42.3500,
+          "longitude": -71.0500,
+          "performanceScore": 86,
+          "parameters": {
+            "sustainabilityScore": 70,
+            "carbonFootprint": 0.11,
+            "packagingQuality": 85,
+            "geographicalProximity": 15,
+            "compliance": 100,
+            "consumerTrends": 0.85,
+            "riskScore": 18,
+            "localRelevance": 0.8,
+            "productQuality": 89,
+            "availability": 93,
+            "profitMargin": 15,
+            "brandRecognition": 65
+          }
+        },
+        {
+          "id": "SUP030",
+          "name": "Competitive Edge",
+          "supplies": ["Clothing", "Electronics"],
+          "latitude": 42.3800,
+          "longitude": -71.0600,
+          "performanceScore": 88,
+          "parameters": {
+            "sustainabilityScore": 75,
+            "carbonFootprint": 0.09,
+            "packagingQuality": 88,
+            "geographicalProximity": 20,
+            "compliance": 100,
+            "consumerTrends": 0.8,
+            "riskScore": 15,
+            "localRelevance": 0.75,
+            "productQuality": 95,
+            "availability": 92,
+            "profitMargin": 22,
+            "brandRecognition": 80
+          }
+        }
+      ]
+    }
+  ]
+}

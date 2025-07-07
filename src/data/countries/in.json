@@ -1,0 +1,73 @@
+{
+  "stores": [
+    {
+      "id": "store-in-1",
+      "name": "Walmart India Store 1",
+      "latitude": 28.7041,
+      "longitude": 77.1025,
+      "coordinates": [77.1025, 28.7041],
+      "risk": "Medium",
+      "riskScore": 6.5,
+      "type": "Hypermarket",
+      "monthlyLoss": 10000,
+      "deliveryRadius": 40,
+      "connectedSuppliers": [
+        "supplier-in-1",
+        "supplier-in-2"
+      ]
+    },
+    {
+      "id": "store-in-2",
+      "name": "Walmart India Store 2",
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "coordinates": [72.8777, 19.0760],
+      "risk": "Low",
+      "riskScore": 4.0,
+      "type": "Cash & Carry",
+      "monthlyLoss": 5000,
+      "deliveryRadius": 25,
+      "connectedSuppliers": [
+        "supplier-in-3"
+      ]
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "supplier-in-1",
+      "name": "Indian Spices Co.",
+      "latitude": 28.7041,
+      "longitude": 77.1025,
+      "coordinates": [77.1025, 28.7041],
+      "category": "Spices",
+      "risk": "Medium",
+      "riskScore": 6.5,
+      "supplyScore": 70,
+      "lossAmount": 4000
+    },
+    {
+      "id": "supplier-in-2",
+      "name": "Indian Textile Mills",
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "coordinates": [72.8777, 19.0760],
+      "category": "Textile",
+      "risk": "Low",
+      "riskScore": 4.0,
+      "supplyScore": 85,
+      "lossAmount": 2000
+    },
+    {
+      "id": "supplier-in-3",
+      "name": "Indian Electronics Ltd.",
+      "latitude": 12.9716,
+      "longitude": 77.5946,
+      "coordinates": [77.5946, 12.9716],
+      "category": "Electronics",
+      "risk": "High",
+      "riskScore": 8.0,
+      "supplyScore": 55,
+      "lossAmount": 6000
+    }
+  ]
+}

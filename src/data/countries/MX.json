@@ -1,0 +1,63 @@
+{
+  "stores": [
+    {
+      "id": "store-mx-1",
+      "name": "Walmart Mexico City",
+      "latitude": 19.4326,
+      "longitude": -99.1332,
+      "risk": "High",
+      "type": "Bodega Aurrera",
+      "monthlyLoss": 12000,
+      "deliveryRadius": 35,
+      "connectedSuppliers": [
+        "supplier-mx-1",
+        "supplier-mx-2"
+      ]
+    },
+    {
+      "id": "store-mx-2",
+      "name": "Walmart Guadalajara",
+      "latitude": 20.6597,
+      "longitude": -103.3496,
+      "risk": "Medium",
+      "type": "Supercenter",
+      "monthlyLoss": 8000,
+      "deliveryRadius": 45,
+      "connectedSuppliers": [
+        "supplier-mx-3"
+      ]
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "supplier-mx-1",
+      "name": "Mexican Produce Growers",
+      "latitude": 19.4326,
+      "longitude": -99.1332,
+      "category": "Produce",
+      "risk": "High",
+      "supplyScore": 65,
+      "lossAmount": 4500
+    },
+    {
+      "id": "supplier-mx-2",
+      "name": "Mexican Dairy Farms",
+      "latitude": 20.6597,
+      "longitude": -103.3496,
+      "category": "Dairy",
+      "risk": "Medium",
+      "supplyScore": 78,
+      "lossAmount": 2500
+    },
+    {
+      "id": "supplier-mx-3",
+      "name": "Mexican Apparel Mfg.",
+      "latitude": 25.6866,
+      "longitude": -100.3161,
+      "category": "Apparel",
+      "risk": "Low",
+      "supplyScore": 88,
+      "lossAmount": 1500
+    }
+  ]
+}

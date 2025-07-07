@@ -1,0 +1,63 @@
+{
+  "stores": [
+    {
+      "id": "store-us-1",
+      "name": "Walmart Supercenter US 1",
+      "latitude": 34.0522,
+      "longitude": -118.2437,
+      "risk": "High",
+      "type": "Supercenter",
+      "monthlyLoss": 15000,
+      "deliveryRadius": 50,
+      "connectedSuppliers": [
+        "supplier-us-1",
+        "supplier-us-2"
+      ]
+    },
+    {
+      "id": "store-us-2",
+      "name": "Walmart Neighborhood Market US 2",
+      "latitude": 34.0522,
+      "longitude": -118.2437,
+      "risk": "Medium",
+      "type": "Neighborhood Market",
+      "monthlyLoss": 7000,
+      "deliveryRadius": 30,
+      "connectedSuppliers": [
+        "supplier-us-3"
+      ]
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "supplier-us-1",
+      "name": "US Produce Inc.",
+      "latitude": 34.0522,
+      "longitude": -118.2437,
+      "category": "Produce",
+      "risk": "High",
+      "supplyScore": 60,
+      "lossAmount": 5000
+    },
+    {
+      "id": "supplier-us-2",
+      "name": "US Dairy Co.",
+      "latitude": 34.0522,
+      "longitude": -118.2437,
+      "category": "Dairy",
+      "risk": "Medium",
+      "supplyScore": 75,
+      "lossAmount": 3000
+    },
+    {
+      "id": "supplier-us-3",
+      "name": "US Meat Packers",
+      "latitude": 34.0522,
+      "longitude": -118.2437,
+      "category": "Meat",
+      "risk": "Low",
+      "supplyScore": 90,
+      "lossAmount": 1000
+    }
+  ]
+}
