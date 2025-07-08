@@ -378,6 +378,45 @@ const InteractiveMap = () => {
       clusterGroups[clusterType].push(supplier);
     });
 
+    // Define cluster-specific parameter weights and sizing logic
+    const clusterConfigs: { [key: string]: { 
+      primaryParam: keyof typeof clusterParameters, 
+      weight: number, 
+      baseRadius: number,
+      maxRadius: number 
+    } } = {
+      'Sustainability': {
+        primaryParam: 'sustainabilityScore',
+        weight: 0.4,
+        baseRadius: 20,
+        maxRadius: 150
+      },
+      'Local Consumption': {
+        primaryParam: 'localRelevance',
+        weight: 0.4,
+        baseRadius: 15,
+        maxRadius: 120
+      },
+      'High Profit Margin': {
+        primaryParam: 'profitMargin',
+        weight: 0.4,
+        baseRadius: 25,
+        maxRadius: 180
+      },
+      'Brand Value': {
+        primaryParam: 'brandRecognition',
+        weight: 0.4,
+        baseRadius: 18,
+        maxRadius: 140
+      },
+      'Product Quality': {
+        primaryParam: 'productQuality',
+        weight: 0.4,
+        baseRadius: 22,
+        maxRadius: 160
+      }
+    };
+
     // Create cluster objects with dynamic sizing based on parameters
     return Object.entries(clusterGroups).map(([clusterType, suppliers]) => {
       if (suppliers.length === 0) return null;
@@ -386,39 +425,53 @@ const InteractiveMap = () => {
       const avgLon = suppliers.reduce((sum, s) => sum + s.coordinates[0], 0) / suppliers.length;
       const avgLat = suppliers.reduce((sum, s) => sum + s.coordinates[1], 0) / suppliers.length;
       
-      // Calculate dynamic radius based on parameters and supplier properties
-      const baseRadius = 15; // Base radius in km (increased for better visibility)
+      // Get cluster configuration
+      const config = clusterConfigs[clusterType] || {
+        primaryParam: 'sustainabilityScore',
+        weight: 0.3,
+        baseRadius: 20,
+        maxRadius: 150
+      };
       
-      // Check if any parameters are set (non-zero)
-      const hasActiveParameters = params.sustainabilityScore > 0 || params.profitMargin > 0 || 
-                                  params.productQuality > 0 || params.localRelevance > 0;
+      // Calculate dynamic radius based on primary parameter
+      const primaryParamValue = params[config.primaryParam];
+      const primaryParamWeight = config.weight;
       
-      const parameterInfluence = hasActiveParameters ? (
-        (params.sustainabilityScore / 100) * 0.3 +
-        (params.profitMargin / 50) * 0.25 +
-        (params.productQuality / 100) * 0.25 +
-        (params.localRelevance / 100) * 0.2
-      ) : 0.5; // Default influence when no parameters are set
+      // Calculate how many suppliers meet the primary parameter threshold
+      const suppliersMeetingPrimary = suppliers.filter(supplier => {
+        const supplierValue = supplier[config.primaryParam] || 0;
+        return supplierValue >= primaryParamValue;
+      }).length;
       
-      // Calculate average scores for this cluster
+      // Calculate radius based on primary parameter influence and supplier count
+      const primaryParamInfluence = primaryParamValue > 0 ? (primaryParamValue / 100) * primaryParamWeight : 0;
+      const supplierDensityFactor = suppliers.length / 10; // Normalize supplier count
+      const meetingThresholdFactor = suppliersMeetingPrimary / Math.max(suppliers.length, 1);
+      
+      // Dynamic radius calculation with primary parameter emphasis
+      const dynamicRadius = Math.min(
+        config.maxRadius,
+        config.baseRadius + 
+        (primaryParamInfluence * 80) + // Primary parameter can add up to 80km
+        (supplierDensityFactor * 20) + // Supplier count can add up to 20km
+        (meetingThresholdFactor * 30)  // Meeting threshold can add up to 30km
+      );
+      
+      // Calculate cluster score with emphasis on primary parameter
+      const avgPrimaryParam = suppliers.reduce((sum, s) => sum + (s[config.primaryParam] || 0), 0) / suppliers.length;
       const avgSustainability = suppliers.reduce((sum, s) => sum + (s.sustainabilityScore || 70), 0) / suppliers.length;
       const avgProfitMargin = suppliers.reduce((sum, s) => sum + (s.profitMargin || 25), 0) / suppliers.length;
       const avgProductQuality = suppliers.reduce((sum, s) => sum + (s.productQuality || 80), 0) / suppliers.length;
       const avgLocalRelevance = suppliers.reduce((sum, s) => sum + (s.localRelevance || 60), 0) / suppliers.length;
       
-      // Calculate cluster score differently based on whether parameters are active
-      const clusterScore = hasActiveParameters ? (
-        avgSustainability * (params.sustainabilityScore / 100) +
-        avgProfitMargin * (params.profitMargin / 50) +
-        avgProductQuality * (params.productQuality / 100) +
-        avgLocalRelevance * (params.localRelevance / 100)
-      ) / 4 : (
-        // Default scoring when no parameters are set
-        (avgSustainability + avgProfitMargin + avgProductQuality + avgLocalRelevance) / 4
+      // Weighted cluster score with primary parameter emphasis
+      const clusterScore = (
+        avgPrimaryParam * primaryParamWeight +
+        avgSustainability * 0.2 +
+        avgProfitMargin * 0.2 +
+        avgProductQuality * 0.2 +
+        avgLocalRelevance * 0.2
       );
-      
-      // Dynamic radius calculation
-      const dynamicRadius = baseRadius + (parameterInfluence * 20) + (clusterScore / 100 * 15);
       
       // Cluster colors
       const clusterColors: { [key: string]: string } = {
@@ -569,9 +622,29 @@ const InteractiveMap = () => {
         clusterGroups[clusterType].push(supplier);
       });
       
+      // STRICT FILTERING: When a category is selected, show ONLY that category
+      let clustersToShow: { [key: string]: Supplier[] } = {};
+      
+      if (selectedClusterCategory) {
+        // Only show the selected category
+        if (clusterGroups[selectedClusterCategory]) {
+          clustersToShow = { [selectedClusterCategory]: clusterGroups[selectedClusterCategory] };
+          console.log(`🔍 Showing ONLY ${selectedClusterCategory} cluster with ${clusterGroups[selectedClusterCategory].length} suppliers`);
+        } else {
+          console.log(`⚠️ No suppliers found for category: ${selectedClusterCategory}`);
+          clustersToShow = {};
+        }
+      } else {
+        // Show all categories when "All Categories" is selected
+        clustersToShow = clusterGroups;
+        console.log(`🌐 Showing ALL categories: ${Object.keys(clusterGroups).join(', ')}`);
+      }
+      
       // Create visual clusters for each group
-      Object.entries(clusterGroups).forEach(([clusterType, suppliers]) => {
+      Object.entries(clustersToShow).forEach(([clusterType, suppliers]) => {
         if (suppliers.length === 0) return;
+        
+        console.log(`📍 Creating cluster for ${clusterType} with ${suppliers.length} suppliers`);
         
         // Calculate cluster center
         const avgLon = suppliers.reduce((sum, s) => sum + s.coordinates[0], 0) / suppliers.length;
@@ -690,6 +763,14 @@ const InteractiveMap = () => {
 
     // Process regular dynamic clusters
     dynamicClusters.forEach(cluster => {
+      // STRICT FILTERING: Skip clusters that don't match the selected category
+      if (selectedClusterCategory && cluster.type !== selectedClusterCategory) {
+        console.log(`🚫 Skipping cluster ${cluster.type} - not matching selected category ${selectedClusterCategory}`);
+        return;
+      }
+      
+      console.log(`✅ Processing cluster ${cluster.type} (matches selected category: ${selectedClusterCategory || 'all'})`);
+      
       const currentRadius = animationManager.current?.getCurrentRadius(cluster.id, cluster.radius) || cluster.radius;
 
       // Create smooth cluster bubble with animated radius
@@ -787,6 +868,45 @@ const InteractiveMap = () => {
       storesToShow = stores;
     }
 
+    // Filter suppliers based on selected category and parameters
+    const filteredSuppliers = suppliers.filter(supplier => {
+      // STRICT CATEGORY FILTERING: Only show suppliers from selected category
+      if (selectedClusterCategory) {
+        // Check if supplier belongs to the selected category
+        const supplierCategory = supplier.category;
+        if (supplierCategory !== selectedClusterCategory) {
+          console.log(`🚫 Filtering out supplier ${supplier.name} - category ${supplierCategory} doesn't match selected ${selectedClusterCategory}`);
+          return false;
+        }
+        console.log(`✅ Supplier ${supplier.name} matches selected category ${selectedClusterCategory}`);
+      }
+
+      // Parameter filtering logic - check if supplier meets minimum thresholds
+      const matchingParams = Object.entries(clusterParameters).filter(([param, threshold]) => {
+        const supplierValue = supplier[param as keyof typeof supplier];
+        if (supplierValue === undefined || supplierValue === null) return false;
+        
+        // Convert to number for comparison
+        const numericValue = typeof supplierValue === 'number' ? supplierValue : Number(supplierValue);
+        if (isNaN(numericValue)) return false;
+        
+        return numericValue >= threshold;
+      });
+
+      const matchPercentage = (matchingParams.length / Object.keys(clusterParameters).length) * 100;
+      
+      // Use different thresholds based on whether a specific category is selected
+      const displayThreshold = selectedClusterCategory ? 40 : 60; // Lower threshold for specific category
+      
+      if (matchPercentage < displayThreshold) {
+        console.log(`🚫 Supplier ${supplier.name} filtered out - ${matchPercentage.toFixed(1)}% match (threshold: ${displayThreshold}%)`);
+        return false;
+      }
+      
+      console.log(`✅ Supplier ${supplier.name} passed filtering - ${matchPercentage.toFixed(1)}% match`);
+      return true;
+    });
+
     // Progressive disclosure: Show suppliers based on current state
     let suppliersToShow: Supplier[] = [];
     let additionalSuppliersToShow: Supplier[] = [];
@@ -801,7 +921,12 @@ const InteractiveMap = () => {
         });
         
         suppliersToShow = alternativeSuppliers.filter(supplier => {
+          // First, filter by selected category - if a category is selected, only show suppliers from that category
           const matchesCategory = selectedClusterCategory ? supplier.category === selectedClusterCategory : true;
+          
+          if (!matchesCategory) {
+            return false; // Don't show suppliers from other categories
+          }
           
           // If no category is selected (showing all), apply parameter filters more strictly
           // If a specific category is selected, be more lenient with parameter filtering
@@ -844,12 +969,16 @@ const InteractiveMap = () => {
             return matchesCategory;
           }
           
-          // For specific category selection, be more lenient - show suppliers that meet at least 50% of set parameters
-          // For "all categories", be more strict - show suppliers that meet at least 75% of set parameters
-          const requiredPercentage = isSpecificCategory ? 0.5 : 0.75;
+          // For specific category selection, be much more lenient - show suppliers that meet at least 25% of set parameters
+          // For "all categories", be more strict - show suppliers that meet at least 60% of set parameters
+          const requiredPercentage = isSpecificCategory ? 0.25 : 0.60;
           const meetsParameterThreshold = metParameters / totalParameters >= requiredPercentage;
           
-          const passes = matchesCategory && meetsParameterThreshold;
+          // Additional leniency: if supplier is in the selected category and has at least one parameter that meets the threshold, show it
+          const hasAtLeastOneGoodParameter = metParameters > 0;
+          const shouldShowForCategory = isSpecificCategory && hasAtLeastOneGoodParameter;
+          
+          const passes = matchesCategory && (meetsParameterThreshold || shouldShowForCategory);
           
           if (!passes) {
             console.log('Supplier filtered out:', supplier.name, {
@@ -859,7 +988,8 @@ const InteractiveMap = () => {
               totalParameters,
               percentage: totalParameters > 0 ? (metParameters / totalParameters * 100).toFixed(1) + '%' : 'N/A',
               requiredPercentage: (requiredPercentage * 100).toFixed(1) + '%',
-              isSpecificCategory
+              isSpecificCategory,
+              hasAtLeastOneGoodParameter
             });
           }
           
@@ -1369,13 +1499,13 @@ const InteractiveMap = () => {
                             <span className={`px-2 py-0.5 rounded text-xs ${
                               selectedClusterCategory ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
                             }`}>
-                              {selectedClusterCategory ? 'Lenient (50% threshold)' : 'Strict (75% threshold)'}
+                              {selectedClusterCategory ? `Showing ${selectedClusterCategory} Only` : 'Showing All Categories'}
                             </span>
                           </div>
                           <p className="text-gray-600">
                             {selectedClusterCategory 
-                              ? `Showing ${selectedClusterCategory} suppliers that meet at least 50% of set parameters`
-                              : 'Showing suppliers from all categories that meet at least 75% of set parameters'
+                              ? `Displaying only ${selectedClusterCategory} cluster and suppliers. Other categories are hidden.`
+                              : 'Showing suppliers from all categories that meet at least 60% of set parameters'
                             }
                           </p>
                         </div>
@@ -1435,7 +1565,7 @@ const InteractiveMap = () => {
                           />
                         </div>
                         <div className="text-xs text-purple-600 bg-purple-100 p-2 rounded mt-3">
-                          💡 Adjust parameters to see real-time cluster changes. When a specific category is selected, filtering is more lenient (50% threshold). When showing all categories, filtering is stricter (75% threshold).
+                          💡 When a specific category is selected, only that cluster and its suppliers are displayed. When "All Categories" is selected, all clusters and suppliers are shown with moderate filtering (60% threshold).
                         </div>
                       </div>
                     </div>
@@ -1478,7 +1608,30 @@ const InteractiveMap = () => {
                 </Button>
               </div>
 
-
+              {/* Filtering Mode Indicator */}
+              <div className={`absolute top-4 right-4 z-50 px-3 py-2 rounded-lg text-xs font-medium shadow-lg ${
+                selectedClusterCategory 
+                  ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                  : 'bg-gray-100 text-gray-700 border border-gray-200'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    selectedClusterCategory ? 'bg-blue-500' : 'bg-gray-500'
+                  }`}></div>
+                  <span>
+                    {selectedClusterCategory 
+                      ? `Showing ${selectedClusterCategory} Only` 
+                      : 'Showing All Categories'
+                    }
+                  </span>
+                </div>
+                <div className="text-xs opacity-75 mt-1">
+                  {selectedClusterCategory 
+                    ? `Only ${selectedClusterCategory} clusters and suppliers displayed (40% threshold)`
+                    : 'All clusters and suppliers shown with moderate filtering (60% threshold)'
+                  }
+                </div>
+              </div>
 
             </CardContent>
           </Card>
