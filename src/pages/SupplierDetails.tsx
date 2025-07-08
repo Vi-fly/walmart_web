@@ -49,7 +49,62 @@ const SupplierDetails = () => {
     const loadSupplierData = async () => {
       try {
         const { mockStores, mockSuppliers } = await loadMockData();
-        const foundSupplier = mockSuppliers.find(s => s.id === supplierId);
+        let foundSupplier = mockSuppliers.find(s => s.id === supplierId);
+        
+        // If not found in main suppliers, check alternative suppliers
+        if (!foundSupplier && supplierId?.startsWith('alt-')) {
+          try {
+            const response = await fetch('/walmart_us_alternate_suppliers.json');
+            const data = await response.json();
+            const altSupplierData = data.alternateSuppliers.find((alt: any) => 
+              `alt-${alt.storeId}-${data.alternateSuppliers.indexOf(alt)}` === supplierId
+            );
+            
+            if (altSupplierData) {
+              // Transform alternative supplier data to match Supplier interface
+              foundSupplier = {
+                id: supplierId,
+                name: altSupplierData.name || `Alternative Supplier`,
+                products: altSupplierData.supplies,
+                coordinates: [altSupplierData.longitude, altSupplierData.latitude],
+                category: altSupplierData.clusterId || 'Local Consumption',
+                riskScore: altSupplierData.parameters.riskScore,
+                riskBreakdown: {
+                  financial: Math.max(0, Math.min(10, altSupplierData.parameters.riskScore / 10)),
+                  quality: Math.max(0, Math.min(10, (100 - altSupplierData.parameters.productQuality) / 10)),
+                  delivery: Math.max(0, Math.min(10, altSupplierData.parameters.riskScore / 12)),
+                  compliance: Math.max(0, Math.min(10, altSupplierData.parameters.riskScore / 15)),
+                  sustainability: Math.max(0, Math.min(10, (100 - (altSupplierData.parameters.sustainabilityScore || 70)) / 10)),
+                  customerFeedback: Math.max(0, Math.min(10, altSupplierData.parameters.riskScore / 8))
+                },
+                sustainabilityScore: altSupplierData.parameters.sustainabilityScore || 70,
+                carbonFootprint: altSupplierData.parameters.carbonFootprint,
+                packagingQuality: altSupplierData.parameters.packagingQuality,
+                localRelevance: altSupplierData.parameters.localRelevance,
+                productQuality: altSupplierData.parameters.productQuality,
+                availability: altSupplierData.parameters.availability,
+                profitMargin: altSupplierData.parameters.profitMargin,
+                brandRecognition: altSupplierData.parameters.brandRecognition,
+                deliveryRadius: Math.floor(Math.random() * 100) + 50,
+                monthlyVolume: Math.floor(Math.random() * 10000) + 1000,
+                contractValue: Math.floor(Math.random() * 500000) + 50000,
+                certifications: ['ISO 9001', 'HACCP', 'Organic Certified'],
+                lastAudit: '2024-06-15',
+                performanceTrend: ['improving', 'stable', 'declining'][Math.floor(Math.random() * 3)] as any,
+                contact: {
+                  name: `${altSupplierData.name} Manager`,
+                  email: `contact@${altSupplierData.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+                  phone: `+1-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`
+                },
+                address: `${altSupplierData.name} Headquarters`,
+                establishedYear: Math.floor(Math.random() * 30) + 1990,
+                employeeCount: Math.floor(Math.random() * 500) + 50,
+              } as Supplier;
+            }
+          } catch (error) {
+            console.error('Failed to load alternative supplier data:', error);
+          }
+        }
         
         if (!foundSupplier) {
           navigate('/map');
@@ -292,10 +347,22 @@ const SupplierDetails = () => {
           
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">{supplier.name}</h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-4xl font-bold text-gray-900">{supplier.name}</h1>
+                {supplierId?.startsWith('alt-') && (
+                  <Badge className="bg-purple-100 text-purple-800 text-sm px-3 py-1">
+                    🔄 Alternative Supplier
+                  </Badge>
+                )}
+              </div>
               <p className="text-gray-600 mt-2 text-lg">
                 {supplier.category} • {supplier.address}
               </p>
+              {supplierId?.startsWith('alt-') && (
+                <p className="text-sm text-purple-600 mt-1 font-medium">
+                  💡 This is a potential alternative supplier with competitive advantages for your supply chain
+                </p>
+              )}
             </div>
             <div className="flex gap-2">
               <Badge className={getHealthColor(supplier.aiAnalysis.overallHealth)}>
@@ -389,11 +456,14 @@ const SupplierDetails = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="benefits">Benefits</TabsTrigger>
+            <TabsTrigger value="communication">Contact</TabsTrigger>
+            <TabsTrigger value="capacity">Capacity</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
             <TabsTrigger value="reports">Reports ({supplier.reports.length})</TabsTrigger>
-            <TabsTrigger value="stores">Connected Stores ({connectedStores.length})</TabsTrigger>
+            <TabsTrigger value="stores">Stores ({connectedStores.length})</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -526,6 +596,386 @@ const SupplierDetails = () => {
                           {cert}
                         </Badge>
                       ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Benefits Tab */}
+          <TabsContent value="benefits" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    Key Benefits & Value Propositions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <h4 className="font-semibold text-green-800">Cost Efficiency</h4>
+                      </div>
+                      <p className="text-sm text-green-700">
+                        {supplier.profitMargin && supplier.profitMargin > 20 
+                          ? `Excellent profit margins of ${supplier.profitMargin}% offering competitive pricing while maintaining quality standards.`
+                          : 'Competitive pricing structure with potential for bulk discounts and long-term contract benefits.'}
+                      </p>
+                    </div>
+                    
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Package className="h-4 w-4 text-blue-600" />
+                        <h4 className="font-semibold text-blue-800">Product Quality</h4>
+                      </div>
+                      <p className="text-sm text-blue-700">
+                        {supplier.productQuality && supplier.productQuality > 85
+                          ? `Superior product quality score of ${supplier.productQuality}/100 ensuring consistent customer satisfaction.`
+                          : 'Reliable product quality with established quality control processes and certifications.'}
+                      </p>
+                    </div>
+                    
+                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MapPin className="h-4 w-4 text-purple-600" />
+                        <h4 className="font-semibold text-purple-800">Strategic Location</h4>
+                      </div>
+                      <p className="text-sm text-purple-700">
+                        Located within {supplier.deliveryRadius}km delivery radius, enabling rapid fulfillment and reduced logistics costs.
+                      </p>
+                    </div>
+                    
+                    {supplier.sustainabilityScore && supplier.sustainabilityScore > 70 && (
+                      <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle className="h-4 w-4 text-emerald-600" />
+                          <h4 className="font-semibold text-emerald-800">Sustainability Leadership</h4>
+                        </div>
+                        <p className="text-sm text-emerald-700">
+                          High sustainability score of {supplier.sustainabilityScore}/100 supporting Walmart's environmental commitments and ESG goals.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                    Why Choose This Supplier?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Risk Mitigation</h4>
+                      <div className="flex items-center gap-2">
+                        <Badge className={supplier.riskScore <= 30 ? 'bg-red-100 text-red-800' : supplier.riskScore <= 70 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}>
+                          {supplier.riskScore <= 30 ? 'High Risk' : supplier.riskScore <= 70 ? 'Medium Risk' : 'Low Risk'}
+                        </Badge>
+                        <span className="text-sm text-gray-600">({supplier.riskScore.toFixed(1)}/100)</span>
+                      </div>
+                      <p className="text-sm text-gray-700 mt-2">
+                        {supplier.riskScore > 70 
+                          ? 'Low risk profile ensures reliable supply chain continuity and minimal disruptions.'
+                          : supplier.riskScore > 30
+                          ? 'Moderate risk profile with identified mitigation strategies and monitoring protocols.'
+                          : 'Higher risk profile requiring enhanced monitoring and contingency planning.'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Track Record</h4>
+                      <div className="flex items-center gap-2 mb-2">
+                        {supplier.performanceTrend === 'improving' && <TrendingUp className="h-4 w-4 text-green-600" />}
+                        {supplier.performanceTrend === 'declining' && <TrendingDown className="h-4 w-4 text-red-600" />}
+                        {supplier.performanceTrend === 'stable' && <Clock className="h-4 w-4 text-yellow-600" />}
+                        <span className="font-medium capitalize">{supplier.performanceTrend} Performance</span>
+                      </div>
+                      <p className="text-sm text-gray-700">
+                        Established since {supplier.establishedYear} with {supplier.employeeCount} employees and proven market presence.
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Certifications & Compliance</h4>
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {supplier.certifications.map((cert, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {cert}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="text-sm text-gray-700">
+                        Fully certified and compliant with industry standards, last audited on {supplier.lastAudit}.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Communication Tab */}
+          <TabsContent value="communication" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Phone className="h-5 w-5 text-blue-600" />
+                    Contact Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold text-gray-900 mb-3">Primary Contact</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium">{supplier.contact.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm">{supplier.contact.phone}</span>
+                          <Button size="sm" variant="outline" className="ml-auto">
+                            Call Now
+                          </Button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm">{supplier.contact.email}</span>
+                          <Button size="sm" variant="outline" className="ml-auto">
+                            Send Email
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold text-gray-900 mb-3">Business Hours</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Monday - Friday:</span>
+                          <span className="font-medium">8:00 AM - 6:00 PM</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Saturday:</span>
+                          <span className="font-medium">9:00 AM - 4:00 PM</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Sunday:</span>
+                          <span className="font-medium">Closed</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold text-gray-900 mb-3">Response Times</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Email Response:</span>
+                          <span className="font-medium">Within 4 hours</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Quote Requests:</span>
+                          <span className="font-medium">Same business day</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Emergency Contact:</span>
+                          <span className="font-medium">24/7 hotline</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-green-600" />
+                    Location & Logistics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold text-gray-900 mb-3">Physical Address</h4>
+                      <p className="text-sm text-gray-700">{supplier.address}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Coordinates: {supplier.coordinates[1].toFixed(4)}, {supplier.coordinates[0].toFixed(4)}
+                      </p>
+                      <Button size="sm" variant="outline" className="mt-2">
+                        View on Map
+                      </Button>
+                    </div>
+                    
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold text-gray-900 mb-3">Delivery Information</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Service Radius:</span>
+                          <span className="font-medium">{supplier.deliveryRadius} km</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Standard Delivery:</span>
+                          <span className="font-medium">2-3 business days</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Express Delivery:</span>
+                          <span className="font-medium">Same day available</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Minimum Order:</span>
+                          <span className="font-medium">₹50,000</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold text-gray-900 mb-3">Preferred Communication</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-blue-500" />
+                          <span className="text-sm">Email (Primary)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-green-500" />
+                          <span className="text-sm">Phone (Urgent)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Package className="h-4 w-4 text-purple-500" />
+                          <span className="text-sm">EDI Integration Available</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Capacity Tab */}
+          <TabsContent value="capacity" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5 text-blue-600" />
+                    Production & Stock Capacity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h4 className="font-semibold text-blue-800 mb-2">Monthly Volume Capacity</h4>
+                      <div className="text-2xl font-bold text-blue-600 mb-1">
+                        {supplier.monthlyVolume.toLocaleString()} units
+                      </div>
+                      <p className="text-sm text-blue-700">
+                        Current utilization: {Math.floor(Math.random() * 40) + 60}% • Available capacity for new orders
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-900">Product Categories & Stock</h4>
+                      {supplier.products.slice(0, 5).map((product, index) => {
+                        const stockLevel = Math.floor(Math.random() * 10000) + 1000;
+                        const stockStatus = stockLevel > 5000 ? 'high' : stockLevel > 2000 ? 'medium' : 'low';
+                        return (
+                          <div key={index} className="p-3 border rounded-lg">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="font-medium">{product}</span>
+                              <Badge className={stockStatus === 'high' ? 'bg-green-100 text-green-800' : stockStatus === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}>
+                                {stockLevel.toLocaleString()} units
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Restock frequency: {Math.floor(Math.random() * 14) + 7} days
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-purple-600" />
+                    Store Servicing Capacity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <h4 className="font-semibold text-purple-800 mb-2">Store Coverage Potential</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-xl font-bold text-purple-600">
+                            {Math.floor(Math.random() * 50) + 20}
+                          </div>
+                          <div className="text-sm text-purple-700">Current Stores</div>
+                        </div>
+                        <div>
+                          <div className="text-xl font-bold text-purple-600">
+                            {Math.floor(Math.random() * 100) + 50}
+                          </div>
+                          <div className="text-sm text-purple-700">Maximum Capacity</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-900">Geographic Coverage</h4>
+                      <div className="p-3 border rounded-lg">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium">Primary Coverage Zone</span>
+                          <Badge variant="outline">{supplier.deliveryRadius} km radius</Badge>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          Can serve approximately {Math.floor((supplier.deliveryRadius / 10) * 3)} stores in optimal conditions
+                        </p>
+                      </div>
+                      
+                      <div className="p-3 border rounded-lg">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium">Store Types Supported</span>
+                        </div>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Supercenters:</span>
+                            <span className="font-medium">Up to 15 stores</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Neighborhood Markets:</span>
+                            <span className="font-medium">Up to 30 stores</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Express Stores:</span>
+                            <span className="font-medium">Up to 50 stores</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 border rounded-lg">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium">Scalability Potential</span>
+                          <Badge className="bg-green-100 text-green-800">High</Badge>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          Can expand operations by {Math.floor(Math.random() * 50) + 25}% with 3-month notice period
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

@@ -59,6 +59,7 @@ const InteractiveMap = () => {
   const [showClusters, setShowClusters] = useState(false);
   const [showConnections, setShowConnections] = useState(false);
   const [showStoreDetails, setShowStoreDetails] = useState(false);
+  const [showSupplierDetails, setShowSupplierDetails] = useState(false);
   const [showAlternativeClusters, setShowAlternativeClusters] = useState(false);
   const [alternativeSuppliers, setAlternativeSuppliers] = useState<Supplier[]>([]);
   const [dynamicClusters, setDynamicClusters] = useState<Cluster[]>([]);
@@ -1015,10 +1016,15 @@ const InteractiveMap = () => {
           icon: createStoreIcon(store)
         });
 
-        // Enhanced tooltip for store markers
-        marker.bindTooltip(
-          `<div class="text-xs max-w-64">
-            <div class="font-bold text-sm mb-2">${store.name}</div>
+        // Enhanced popup for store markers (click-based instead of hover)
+        marker.bindPopup(
+          `<div class="p-3 min-w-64">
+            <div class="font-bold text-sm mb-2 flex items-center justify-between">
+              <span>${store.name}</span>
+              <button onclick="window.closeStorePanel()" class="text-gray-500 hover:text-gray-700 text-lg font-bold" title="Close">
+                ×
+              </button>
+            </div>
             <div class="space-y-1">
               <div class="flex justify-between">
                 <span>Type:</span>
@@ -1050,16 +1056,21 @@ const InteractiveMap = () => {
           { 
             permanent: false,
             direction: 'top',
-            className: 'custom-tooltip'
+            className: 'custom-tooltip',
+            closeButton: false
           }
         );
 
         marker.on('click', () => {
-          setSelectedStore(store); // Set selected store without showing details panel
+          setSelectedStore(store);
           setSelectedSupplier(null);
-          setShowStoreDetails(false); // Don't show the store details card
+          setShowStoreDetails(true); // Show the store details panel
+          setShowSupplierDetails(false);
           setShowAlternativeClusters(false); // Reset alternative clusters when selecting a new store
           setActiveLayer('both'); // Switch to show both stores and suppliers
+          
+          // Open the popup automatically
+          marker.openPopup();
         });
 
         markersLayer.current?.addLayer(marker);
@@ -1078,7 +1089,12 @@ const InteractiveMap = () => {
 
         marker.bindPopup(`
           <div class="p-3 min-w-60">
-            <h3 class="font-semibold text-sm mb-2">${supplier.name} <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Alternative</span></h3>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-semibold text-sm">${supplier.name} <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Alternative</span></h3>
+              <button onclick="window.closeSupplierPanel()" class="text-gray-500 hover:text-gray-700 text-lg font-bold" title="Close">
+                ×
+              </button>
+            </div>
             <div class="space-y-1 text-xs">
               <div class="flex justify-between">
                 <span class="font-medium">Category:</span>
@@ -1114,69 +1130,62 @@ const InteractiveMap = () => {
           </div>
         `);
 
-        // Add hover tooltip for alternative suppliers when a store is selected
-        if (selectedStore) {
-          marker.bindTooltip(
-            `<div class="text-xs">
-              <strong>${supplier.name}</strong> (Alternative)<br/>
-              ${supplier.category}<br/>
-              Risk: ${supplier.riskScore.toFixed(1)}/100<br/>
-              Contract: ₹${supplier.contractValue.toLocaleString()}
-            </div>`,
-            { 
-              permanent: false,
-              direction: 'top',
-              className: 'custom-tooltip'
-            }
-          );
-        }
+        // No hover tooltip for suppliers - only click-based popups
 
         marker.on('click', () => {
           setSelectedSupplier(supplier);
-          setSelectedStore(null);
+          setShowSupplierDetails(true); // Show supplier details panel
+          // Don't clear selectedStore if one is selected - keep it for context
           setShowStoreDetails(false); // Hide store details if a supplier is selected
+          
+          // Open the popup automatically
+          marker.openPopup();
         });
 
         markersLayer.current?.addLayer(marker);
       });
     }
 
-    // Add connections - show connections between selected store and its current suppliers
-    if (selectedStore && showConnections && !showAlternativeClusters) {
-      const currentSuppliers = suppliers.filter(s => selectedStore.suppliers.includes(s.id));
-      console.log(`Drawing connections for ${currentSuppliers.length} suppliers to ${selectedStore.name}`);
+    // Add connections - show connections between selected store and its suppliers
+    if (selectedStore && showConnections) {
+      let suppliersToConnect: Supplier[] = [];
       
-      currentSuppliers.forEach(supplier => {
+      if (showAlternativeClusters) {
+        // Show connections to alternative suppliers
+        suppliersToConnect = suppliersToShow; // Use the already filtered alternative suppliers
+        console.log(`Drawing connections for ${suppliersToConnect.length} alternative suppliers to ${selectedStore.name}`);
+      } else {
+        // Show connections to current suppliers
+        suppliersToConnect = suppliers.filter(s => selectedStore.suppliers.includes(s.id));
+        console.log(`Drawing connections for ${suppliersToConnect.length} current suppliers to ${selectedStore.name}`);
+      }
+      
+      suppliersToConnect.forEach(supplier => {
         const distance = getDistance(supplier.coordinates, selectedStore.coordinates);
-        // Remove distance restriction to show all connections
         const riskLevel = getRiskLevel(supplier.riskScore);
         // Adjusted colors for risk level based on 0-100 scale (lower score = higher risk)
         const color = riskLevel === 'low' ? '#22c55e' : riskLevel === 'medium' ? '#eab308' : '#ef4444';
+        
+        // Use different styles for alternative vs current suppliers
+        const isAlternative = showAlternativeClusters;
+        const lineStyle = isAlternative ? {
+          color: color,
+          weight: 2,
+          opacity: 0.6,
+          dashArray: '8, 4' // Dashed for alternatives
+        } : {
+          color: color,
+          weight: 3,
+          opacity: 0.8,
+          dashArray: '5, 10' // Different dash for current
+        };
 
         const polyline = L.polyline([
           [supplier.coordinates[1], supplier.coordinates[0]],
           [selectedStore.coordinates[1], selectedStore.coordinates[0]]
-        ], {
-          color: color,
-          weight: 3,
-          opacity: 0.7,
-          dashArray: '5, 10'
-        });
+        ], lineStyle);
 
-        // Add hover tooltip for connection
-        polyline.bindTooltip(
-          `<div class="text-xs">
-            <strong>${supplier.name}</strong><br/>
-            Risk: ${supplier.riskScore.toFixed(1)}/100<br/>
-            Distance: ${distance.toFixed(1)} km<br/>
-            Contract: ₹${supplier.contractValue.toLocaleString()}
-          </div>`,
-          { 
-            permanent: false,
-            direction: 'center',
-            className: 'custom-tooltip'
-          }
-        );
+        // No hover tooltip for connection lines - click on suppliers for details
 
         connectionsLayer.current?.addLayer(polyline);
       });
@@ -1186,7 +1195,6 @@ const InteractiveMap = () => {
         const storeSuppliers = suppliers.filter(s => store.suppliers.includes(s.id));
         storeSuppliers.forEach(supplier => {
           const distance = getDistance(supplier.coordinates, store.coordinates);
-          // Remove distance restriction to show all connections
           const riskLevel = getRiskLevel(supplier.riskScore);
           const color = riskLevel === 'low' ? '#22c55e' : riskLevel === 'medium' ? '#eab308' : '#ef4444';
 
@@ -1312,7 +1320,7 @@ const InteractiveMap = () => {
     if (!isLoading) {
       updateMapContent();
     }
-  }, [activeLayer, selectedStore, showAlternativeClusters, showConnections, alternativeSuppliers, clusterParameters, selectedClusterCategory]);
+  }, [activeLayer, selectedStore, selectedSupplier, showAlternativeClusters, showConnections, alternativeSuppliers, clusterParameters, selectedClusterCategory]);
 
   useEffect(() => {
     // Only update clusters if data is loaded
@@ -1321,7 +1329,7 @@ const InteractiveMap = () => {
     }
   }, [showClusters, showAlternativeClusters, alternativeSuppliers, selectedStore, dynamicClusters, isLoading]);
 
-  // Add global function for popup button
+  // Add global functions for popup buttons
   useEffect(() => {
     (window as any).viewStoreDetails = (storeId: string) => {
       // Navigate to the store details page
@@ -1332,12 +1340,24 @@ const InteractiveMap = () => {
       // Navigate to the supplier details page
       navigate(`/supplier/${supplierId}`);
     };
+    
+    (window as any).closeStorePanel = () => {
+      // Close store popup
+      map.current?.closePopup();
+    };
+    
+    (window as any).closeSupplierPanel = () => {
+      // Close supplier popup
+      map.current?.closePopup();
+    };
 
     return () => {
       delete (window as any).viewStoreDetails;
       delete (window as any).viewSupplierDetails;
+      delete (window as any).closeStorePanel;
+      delete (window as any).closeSupplierPanel;
     };
-  }, [navigate]); // Add 'navigate' to dependency array
+  }, [navigate]);
 
   // Add parameter update handler with intelligent adjustment
   const renderStoreDetailsCard = () => {
@@ -1416,6 +1436,7 @@ const InteractiveMap = () => {
                         setSelectedStore(null);
                         setSelectedSupplier(null);
                         setShowStoreDetails(false);
+                        setShowSupplierDetails(false);
                         setShowAlternativeClusters(false);
                         setActiveLayer('stores');
                       }}
@@ -1621,6 +1642,64 @@ const InteractiveMap = () => {
                     <p className="text-xs mt-1 text-blue-600">
                       Click a store to see its suppliers and options
                     </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Supplier Details Panel */}
+              {selectedSupplier && showSupplierDetails && (
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-walmart-blue flex items-center gap-2">
+                      <Factory className="h-5 w-5" />
+                      {selectedSupplier.name}
+                    </h3>
+                    <Button
+                      onClick={() => {
+                        setSelectedSupplier(null);
+                        setShowSupplierDetails(false);
+                      }}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  {/* Supplier Info */}
+                  <div className="space-y-3 mb-4">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <p className="text-gray-600">Category</p>
+                        <p className="font-medium">{selectedSupplier.category}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">Risk Score</p>
+                        <p className={`font-medium ${
+                          getRiskLevel(selectedSupplier.riskScore) === 'low' ? 'text-green-600' :
+                          getRiskLevel(selectedSupplier.riskScore) === 'medium' ? 'text-yellow-600' : 'text-red-600'
+                        }`}>{selectedSupplier.riskScore.toFixed(1)}/100</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">Contract Value</p>
+                        <p className="font-medium">₹{selectedSupplier.contractValue.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">Delivery Range</p>
+                        <p className="font-medium">{selectedSupplier.deliveryRadius} km</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-gray-600">Products</p>
+                        <p className="font-medium text-xs">{selectedSupplier.products.slice(0, 3).join(', ')}{selectedSupplier.products.length > 3 ? '...' : ''}</p>
+                      </div>
+                      {selectedStore && (
+                        <div className="col-span-2">
+                          <p className="text-gray-600">Distance to Store</p>
+                          <p className="font-medium">{getDistance(selectedSupplier.coordinates, selectedStore.coordinates).toFixed(1)} km</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}

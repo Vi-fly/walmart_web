@@ -185,3 +185,70 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
 }
+
+/* Custom Leaflet popup styling */
+.leaflet-popup {
+  margin-bottom: 10px;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.4;
+}
+
+.leaflet-popup-tip {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.custom-tooltip {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  color: white !important;
+  font-size: 12px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.custom-tooltip::before {
+  border-top-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Enhanced popup close button */
+.leaflet-popup-close-button {
+  display: none !important; /* Hide default close button since we have custom ones */
+}
+
+/* Custom marker styles */
+.custom-store-icon {
+  transition: transform 0.2s ease;
+}
+
+.custom-store-icon:hover {
+  transform: scale(1.1);
+}
+
+.custom-supplier-icon {
+  transition: transform 0.2s ease;
+}
+
+.custom-supplier-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Cluster animations */
+.cluster-circle {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cluster-label {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
