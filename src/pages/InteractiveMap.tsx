@@ -1015,7 +1015,44 @@ const InteractiveMap = () => {
           icon: createStoreIcon(store)
         });
 
-        // No popup for stores - direct click selection only
+        // Enhanced tooltip for store markers
+        marker.bindTooltip(
+          `<div class="text-xs max-w-64">
+            <div class="font-bold text-sm mb-2">${store.name}</div>
+            <div class="space-y-1">
+              <div class="flex justify-between">
+                <span>Type:</span>
+                <span class="font-medium">${store.type}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Risk Score:</span>
+                <span class="font-medium ${getRiskLevel(store.riskScore) === 'low' ? 'text-green-600' : getRiskLevel(store.riskScore) === 'medium' ? 'text-yellow-600' : 'text-red-600'}">${store.riskScore.toFixed(1)}/100</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Revenue:</span>
+                <span class="font-medium">₹${store.monthlyRevenue.toLocaleString()}/mo</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Customers:</span>
+                <span class="font-medium">${store.customerCount.toLocaleString()}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Suppliers:</span>
+                <span class="font-medium">${store.suppliers.length}</span>
+              </div>
+              <div class="mt-2 pt-2 border-t">
+                <button onclick="window.viewStoreDetails('${store.id}')" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs py-1 px-2 rounded">
+                  View More Details
+                </button>
+              </div>
+            </div>
+          </div>`,
+          { 
+            permanent: false,
+            direction: 'top',
+            className: 'custom-tooltip'
+          }
+        );
 
         marker.on('click', () => {
           setSelectedStore(store); // Set selected store without showing details panel
@@ -1068,6 +1105,11 @@ const InteractiveMap = () => {
               <p><strong>Range:</strong> ${supplier.deliveryRadius} km</p>
               <p><strong>Products:</strong> ${supplier.products.slice(0, 2).join(', ')}${supplier.products.length > 2 ? '...' : ''}</p>
               ${selectedStore ? `<p><strong>Distance to Store:</strong> ${getDistance(supplier.coordinates, selectedStore.coordinates).toFixed(1)} km</p>` : ''}
+              <div class="mt-3 pt-2 border-t">
+                <button onclick="window.viewSupplierDetails('${supplier.id}')" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs py-1 px-2 rounded">
+                  View More Details
+                </button>
+              </div>
             </div>
           </div>
         `);
@@ -1106,63 +1148,59 @@ const InteractiveMap = () => {
       
       currentSuppliers.forEach(supplier => {
         const distance = getDistance(supplier.coordinates, selectedStore.coordinates);
-        if (distance <= supplier.deliveryRadius) {
-          const riskLevel = getRiskLevel(supplier.riskScore);
-          // Adjusted colors for risk level based on 0-100 scale (lower score = higher risk)
-          const color = riskLevel === 'low' ? '#22c55e' : riskLevel === 'medium' ? '#eab308' : '#ef4444';
+        // Remove distance restriction to show all connections
+        const riskLevel = getRiskLevel(supplier.riskScore);
+        // Adjusted colors for risk level based on 0-100 scale (lower score = higher risk)
+        const color = riskLevel === 'low' ? '#22c55e' : riskLevel === 'medium' ? '#eab308' : '#ef4444';
 
-          const polyline = L.polyline([
-            [supplier.coordinates[1], supplier.coordinates[0]],
-            [selectedStore.coordinates[1], selectedStore.coordinates[0]]
-          ], {
-            color: color,
-            weight: 3,
-            opacity: 0.7,
-            dashArray: '5, 10'
-          });
+        const polyline = L.polyline([
+          [supplier.coordinates[1], supplier.coordinates[0]],
+          [selectedStore.coordinates[1], selectedStore.coordinates[0]]
+        ], {
+          color: color,
+          weight: 3,
+          opacity: 0.7,
+          dashArray: '5, 10'
+        });
 
-          // Add hover tooltip for connection
-          polyline.bindTooltip(
-            `<div class="text-xs">
-              <strong>${supplier.name}</strong><br/>
-              Risk: ${supplier.riskScore.toFixed(1)}/100<br/>
-              Distance: ${distance.toFixed(1)} km<br/>
-              Contract: ₹${supplier.contractValue.toLocaleString()}
-            </div>`,
-            { 
-              permanent: false,
-              direction: 'center',
-              className: 'custom-tooltip'
-            }
-          );
+        // Add hover tooltip for connection
+        polyline.bindTooltip(
+          `<div class="text-xs">
+            <strong>${supplier.name}</strong><br/>
+            Risk: ${supplier.riskScore.toFixed(1)}/100<br/>
+            Distance: ${distance.toFixed(1)} km<br/>
+            Contract: ₹${supplier.contractValue.toLocaleString()}
+          </div>`,
+          { 
+            permanent: false,
+            direction: 'center',
+            className: 'custom-tooltip'
+          }
+        );
 
-          connectionsLayer.current?.addLayer(polyline);
-        }
+        connectionsLayer.current?.addLayer(polyline);
       });
     } else if (activeLayer === 'both' && showConnections && !selectedStore) {
       // Show all connections when no store is selected
       storesToShow.forEach(store => {
-        store.suppliers.forEach(supplierId => {
-          const supplier = suppliersToShow.find(s => s.id === supplierId);
-          if (supplier) {
-            const distance = getDistance(supplier.coordinates, store.coordinates);
-            if (distance <= supplier.deliveryRadius) {
-              const riskLevel = getRiskLevel(supplier.riskScore);
-              const color = riskLevel === 'low' ? '#22c55e' : riskLevel === 'medium' ? '#eab308' : '#ef4444';
+        const storeSuppliers = suppliers.filter(s => store.suppliers.includes(s.id));
+        storeSuppliers.forEach(supplier => {
+          const distance = getDistance(supplier.coordinates, store.coordinates);
+          // Remove distance restriction to show all connections
+          const riskLevel = getRiskLevel(supplier.riskScore);
+          const color = riskLevel === 'low' ? '#22c55e' : riskLevel === 'medium' ? '#eab308' : '#ef4444';
 
-              const polyline = L.polyline([
-                [supplier.coordinates[1], supplier.coordinates[0]],
-                [store.coordinates[1], store.coordinates[0]]
-              ], {
-                color: color,
-                weight: 2,
-                opacity: 0.4,
-                dashArray: '3, 6'
-              });
+          const polyline = L.polyline([
+            [supplier.coordinates[1], supplier.coordinates[0]],
+            [store.coordinates[1], store.coordinates[0]]
+          ], {
+            color: color,
+            weight: 2,
+            opacity: 0.4,
+            dashArray: '3, 6'
+          });
 
-              connectionsLayer.current?.addLayer(polyline);
-            }
-          }
+          connectionsLayer.current?.addLayer(polyline);
         });
       });
     }
@@ -1286,19 +1324,20 @@ const InteractiveMap = () => {
   // Add global function for popup button
   useEffect(() => {
     (window as any).viewStoreDetails = (storeId: string) => {
-      // Find the store and set it for display
-      const store = stores.find(s => s.id === storeId);
-      if (store) {
-        setSelectedStore(store);
-        setSelectedSupplier(null); // Clear supplier selection
-        setShowStoreDetails(true); // Show the store details card
-      }
+      // Navigate to the store details page
+      navigate(`/store/${storeId}`);
+    };
+    
+    (window as any).viewSupplierDetails = (supplierId: string) => {
+      // Navigate to the supplier details page
+      navigate(`/supplier/${supplierId}`);
     };
 
     return () => {
       delete (window as any).viewStoreDetails;
+      delete (window as any).viewSupplierDetails;
     };
-  }, [navigate, stores]); // Add 'stores' to dependency array
+  }, [navigate]); // Add 'navigate' to dependency array
 
   // Add parameter update handler with intelligent adjustment
   const renderStoreDetailsCard = () => {
@@ -1606,31 +1645,6 @@ const InteractiveMap = () => {
                   {showConnections ? <Eye className="h-3 w-3 mr-1" /> : <EyeOff className="h-3 w-3 mr-1" />}
                   Connections
                 </Button>
-              </div>
-
-              {/* Filtering Mode Indicator */}
-              <div className={`absolute top-4 right-4 z-50 px-3 py-2 rounded-lg text-xs font-medium shadow-lg ${
-                selectedClusterCategory 
-                  ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                  : 'bg-gray-100 text-gray-700 border border-gray-200'
-              }`}>
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    selectedClusterCategory ? 'bg-blue-500' : 'bg-gray-500'
-                  }`}></div>
-                  <span>
-                    {selectedClusterCategory 
-                      ? `Showing ${selectedClusterCategory} Only` 
-                      : 'Showing All Categories'
-                    }
-                  </span>
-                </div>
-                <div className="text-xs opacity-75 mt-1">
-                  {selectedClusterCategory 
-                    ? `Only ${selectedClusterCategory} clusters and suppliers displayed (40% threshold)`
-                    : 'All clusters and suppliers shown with moderate filtering (60% threshold)'
-                  }
-                </div>
               </div>
 
             </CardContent>

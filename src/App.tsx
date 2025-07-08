@@ -1,21 +1,22 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
 import LoginForm from "@/components/auth/LoginForm";
 import Layout from "@/components/layout/Layout";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import Alerts from "@/pages/Alerts";
 import Dashboard from "@/pages/Dashboard";
 import InteractiveMap from "@/pages/InteractiveMap";
-import StoreDetails from "@/pages/StoreDetails";
-import Suppliers from "@/pages/Suppliers";
-import RiskAssessment from "@/pages/RiskAssessment";
 import Reports from "@/pages/Reports";
-import Alerts from "@/pages/Alerts";
+import RiskAssessment from "@/pages/RiskAssessment";
 import Settings from "@/pages/Settings";
+import StoreDetails from "@/pages/StoreDetails";
+import SupplierDetails from "@/pages/SupplierDetails";
+import Suppliers from "@/pages/Suppliers";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const AppRoutes = () => {
         <>
           <Route path="/map" element={<InteractiveMap />} />
           <Route path="/store/:storeId" element={<StoreDetails />} />
+          <Route path="/supplier/:supplierId" element={<SupplierDetails />} />
           <Route path="/suppliers" element={<Suppliers />} />
           <Route path="/risk" element={<RiskAssessment />} />
           <Route path="/reports" element={<Reports />} />
