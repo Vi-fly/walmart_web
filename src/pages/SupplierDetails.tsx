@@ -2,9 +2,39 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { loadMockData } from '@/data/mockData';
 import type { Store, Supplier } from '@/types';
-import { AlertTriangle, ArrowLeft, CheckCircle, Clock, DollarSign, Mail, MapPin, Package, Phone, TrendingDown, TrendingUp, Users } from 'lucide-react';
+import { 
+  AlertTriangle, 
+  ArrowLeft, 
+  CheckCircle, 
+  Clock, 
+  DollarSign, 
+  Mail, 
+  MapPin, 
+  Package, 
+  Phone, 
+  TrendingDown, 
+  TrendingUp, 
+  Users,
+  Building2,
+  Bot,
+  Zap,
+  Star,
+  Shield,
+  Award,
+  Calendar,
+  FileText,
+  BarChart3,
+  Globe,
+  Truck,
+  Factory,
+  MessageCircle,
+  Timer,
+  Target
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -17,6 +47,8 @@ interface SupplierDetailsData extends Supplier {
     riskTrend: 'improving' | 'stable' | 'declining';
     marketPosition: 'leader' | 'strong' | 'average' | 'weak';
     growthPotential: number;
+    industryRank: number;
+    certificationLevel: 'platinum' | 'gold' | 'silver' | 'bronze';
   };
   reports: {
     id: string;
@@ -27,7 +59,16 @@ interface SupplierDetailsData extends Supplier {
     summary: string;
     keyMetrics: { [key: string]: number };
   }[];
-  connectedStores: Store[];
+  businessPartners: {
+    id: string;
+    name: string;
+    type: 'retail' | 'wholesale' | 'e-commerce' | 'restaurant' | 'industrial';
+    relationship: 'primary' | 'secondary' | 'potential';
+    contractValue: number;
+    duration: string;
+    performance: number;
+    logo?: string;
+  }[];
   performanceHistory: {
     month: string;
     riskScore: number;
@@ -36,6 +77,8 @@ interface SupplierDetailsData extends Supplier {
     deliveryOnTime: number;
     qualityScore: number;
   }[];
+  isAlternative: boolean;
+  aiContactStatus?: 'idle' | 'contacting' | 'completed' | 'failed';
 }
 
 const SupplierDetails = () => {
@@ -44,6 +87,7 @@ const SupplierDetails = () => {
   const [supplier, setSupplier] = useState<SupplierDetailsData | null>(null);
   const [connectedStores, setConnectedStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [aiContactStatus, setAiContactStatus] = useState<'idle' | 'contacting' | 'completed' | 'failed'>('idle');
 
   useEffect(() => {
     const loadSupplierData = async () => {
@@ -114,17 +158,20 @@ const SupplierDetails = () => {
         // Get connected stores for this supplier
         const stores = mockStores.filter(store => store.suppliers.includes(foundSupplier.id));
         
-        // Generate AI analysis and analytics
+        // Generate AI analysis, business partners, and analytics
         const aiAnalysis = generateAIAnalysis(foundSupplier, stores);
         const reports = generateReports(foundSupplier, stores);
         const performanceHistory = generatePerformanceHistory(foundSupplier);
+        const businessPartners = generateBusinessPartners(foundSupplier);
+        const isAlternative = supplierId?.startsWith('alt-') || false;
 
         const supplierWithDetails: SupplierDetailsData = {
           ...foundSupplier,
           aiAnalysis,
           reports,
-          connectedStores: stores,
-          performanceHistory
+          businessPartners,
+          performanceHistory,
+          isAlternative
         };
 
         setSupplier(supplierWithDetails);
@@ -150,6 +197,12 @@ const SupplierDetails = () => {
     else if (supplier.riskScore >= 60 && supplier.performanceTrend !== 'declining') overallHealth = 'good';
     else if (supplier.riskScore >= 40) overallHealth = 'fair';
     else overallHealth = 'poor';
+    
+    const industryRank = Math.floor(Math.random() * 100) + 1;
+    const certificationLevel: 'platinum' | 'gold' | 'silver' | 'bronze' = 
+      supplier.riskScore >= 90 ? 'platinum' :
+      supplier.riskScore >= 75 ? 'gold' :
+      supplier.riskScore >= 60 ? 'silver' : 'bronze';
 
     const keyStrengths: string[] = [];
     if (supplier.sustainabilityScore && supplier.sustainabilityScore >= 80) {
@@ -208,7 +261,9 @@ const SupplierDetails = () => {
       recommendations,
       riskTrend,
       marketPosition,
-      growthPotential
+      growthPotential,
+      industryRank,
+      certificationLevel
     };
   };
 
@@ -261,6 +316,33 @@ const SupplierDetails = () => {
     ];
   };
 
+  const generateBusinessPartners = (supplier: Supplier) => {
+    const companyTypes = ['retail', 'wholesale', 'e-commerce', 'restaurant', 'industrial'] as const;
+    const companies = [
+      { name: 'Metro Cash & Carry', type: 'wholesale', logo: '🏪' },
+      { name: 'Amazon India', type: 'e-commerce', logo: '📦' },
+      { name: 'Reliance Retail', type: 'retail', logo: '🛒' },
+      { name: 'BigBasket', type: 'e-commerce', logo: '🛍️' },
+      { name: 'Spencer\'s Retail', type: 'retail', logo: '🏬' },
+      { name: 'McDonald\'s India', type: 'restaurant', logo: '🍔' },
+      { name: 'Tata Consumer Products', type: 'industrial', logo: '🏭' },
+      { name: 'ITC Limited', type: 'industrial', logo: '🌾' },
+      { name: 'Godrej Consumer Products', type: 'industrial', logo: '🧴' },
+      { name: 'Flipkart', type: 'e-commerce', logo: '📱' }
+    ];
+    
+    return companies.slice(0, Math.floor(Math.random() * 6) + 3).map((company, index) => ({
+      id: `partner-${index}`,
+      name: company.name,
+      type: company.type,
+      relationship: index === 0 ? 'primary' as const : index < 3 ? 'secondary' as const : 'potential' as const,
+      contractValue: Math.floor(Math.random() * 2000000) + 500000,
+      duration: `${Math.floor(Math.random() * 5) + 1} years`,
+      performance: Math.floor(Math.random() * 30) + 70,
+      logo: company.logo
+    }));
+  };
+  
   const generatePerformanceHistory = (supplier: Supplier) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     return months.map((month, index) => ({
@@ -306,6 +388,36 @@ const SupplierDetails = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+  
+  const getCertificationColor = (level: string) => {
+    switch (level) {
+      case 'platinum': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'gold': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'silver': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'bronze': return 'bg-orange-100 text-orange-800 border-orange-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+  
+  const handleAIContact = async () => {
+    setAiContactStatus('contacting');
+    
+    // Simulate AI contacting supplier
+    try {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      setAiContactStatus('completed');
+      
+      // Show success message after a delay
+      setTimeout(() => {
+        setAiContactStatus('idle');
+      }, 5000);
+    } catch (error) {
+      setAiContactStatus('failed');
+      setTimeout(() => {
+        setAiContactStatus('idle');
+      }, 3000);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -334,53 +446,110 @@ const SupplierDetails = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header with AI Contact */}
         <div className="mb-8">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/map')}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Map
-          </Button>
+          <div className="flex justify-between items-center mb-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/map')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Map
+            </Button>
+            
+            {supplier?.isAlternative && (
+              <Button 
+                variant="default" 
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg transition-all duration-200"
+                onClick={handleAIContact}
+                disabled={aiContactStatus === 'contacting'}
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                {aiContactStatus === 'idle' && 'Let AI Contact Supplier'}
+                {aiContactStatus === 'contacting' && (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Contacting...
+                  </>
+                )}
+                {aiContactStatus === 'completed' && (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Contact Successful
+                  </>
+                )}
+                {aiContactStatus === 'failed' && (
+                  <>
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Retry Contact
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
           
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-4xl font-bold text-gray-900">{supplier.name}</h1>
-                {supplierId?.startsWith('alt-') && (
-                  <Badge className="bg-purple-100 text-purple-800 text-sm px-3 py-1">
-                    🔄 Alternative Supplier
+                {supplier.isAlternative && (
+                  <Badge className="bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 text-sm px-3 py-2 border border-purple-200 shadow-sm">
+                    <Zap className="h-3 w-3 mr-1" />
+                    Alternative Supplier
                   </Badge>
                 )}
               </div>
               <p className="text-gray-600 mt-2 text-lg">
                 {supplier.category} • {supplier.address}
               </p>
-              {supplierId?.startsWith('alt-') && (
-                <p className="text-sm text-purple-600 mt-1 font-medium">
-                  💡 This is a potential alternative supplier with competitive advantages for your supply chain
-                </p>
+              {supplier.isAlternative && (
+                <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+                  <div className="flex items-start gap-2">
+                    <Zap className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm text-purple-800 font-medium">
+                        Potential Alternative Supplier
+                      </p>
+                      <p className="text-xs text-purple-600 mt-1">
+                        This supplier offers competitive advantages and has been identified as a viable alternative for your supply chain optimization.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
-            <div className="flex gap-2">
-              <Badge className={getHealthColor(supplier.aiAnalysis.overallHealth)}>
+            <div className="flex flex-wrap gap-2">
+              <Badge className={`${getHealthColor(supplier.aiAnalysis.overallHealth)} shadow-sm border`}>
+                <Shield className="h-3 w-3 mr-1" />
                 {supplier.aiAnalysis.overallHealth.toUpperCase()} HEALTH
               </Badge>
-              <Badge className={getMarketPositionColor(supplier.aiAnalysis.marketPosition)}>
-                {supplier.aiAnalysis.marketPosition.toUpperCase()} POSITION
+              <Badge className={`${getMarketPositionColor(supplier.aiAnalysis.marketPosition)} shadow-sm border`}>
+                <TrendingUp className="h-3 w-3 mr-1" />
+                {supplier.aiAnalysis.marketPosition.toUpperCase()}
+              </Badge>
+              <Badge className={`${getCertificationColor(supplier.aiAnalysis.certificationLevel)} shadow-sm`}>
+                <Award className="h-3 w-3 mr-1" />
+                {supplier.aiAnalysis.certificationLevel.toUpperCase()}
+              </Badge>
+              <Badge className="bg-blue-100 text-blue-800 border border-blue-200 shadow-sm">
+                <Star className="h-3 w-3 mr-1" />
+                #{supplier.aiAnalysis.industryRank} in Industry
               </Badge>
             </div>
           </div>
         </div>
 
         {/* AI Analysis Card */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              🤖 AI Analysis Summary
+        <Card className="mb-6 shadow-lg border-0 bg-gradient-to-br from-slate-50 to-gray-50">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <Bot className="h-5 w-5 text-indigo-600" />
+              AI-Powered Supplier Analysis
             </CardTitle>
+            <p className="text-sm text-gray-600 mt-1">
+              Comprehensive analysis powered by advanced AI algorithms
+            </p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -456,14 +625,39 @@ const SupplierDetails = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="benefits">Benefits</TabsTrigger>
-            <TabsTrigger value="communication">Contact</TabsTrigger>
-            <TabsTrigger value="capacity">Capacity</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="reports">Reports ({supplier.reports.length})</TabsTrigger>
-            <TabsTrigger value="stores">Stores ({connectedStores.length})</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-8 bg-gray-50 p-1 rounded-lg">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <BarChart3 className="h-4 w-4 mr-1" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="partners" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Building2 className="h-4 w-4 mr-1" />
+              Partners
+            </TabsTrigger>
+            <TabsTrigger value="benefits" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Target className="h-4 w-4 mr-1" />
+              Benefits
+            </TabsTrigger>
+            <TabsTrigger value="communication" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <MessageCircle className="h-4 w-4 mr-1" />
+              Contact
+            </TabsTrigger>
+            <TabsTrigger value="capacity" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Factory className="h-4 w-4 mr-1" />
+              Capacity
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TrendingUp className="h-4 w-4 mr-1" />
+              Performance
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <FileText className="h-4 w-4 mr-1" />
+              Reports ({supplier.reports.length})
+            </TabsTrigger>
+            <TabsTrigger value="stores" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Globe className="h-4 w-4 mr-1" />
+              {supplier.isAlternative ? 'Network' : 'Stores'} ({connectedStores.length})
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}

@@ -14,6 +14,7 @@ import RiskAssessment from "@/pages/RiskAssessment";
 import Settings from "@/pages/Settings";
 import StoreDetails from "@/pages/StoreDetails";
 import SupplierDetails from "@/pages/SupplierDetails";
+import SupplierComparison from "@/pages/SupplierComparison";
 import Suppliers from "@/pages/Suppliers";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
@@ -57,6 +58,7 @@ const AppRoutes = () => {
           <Route path="/map" element={<InteractiveMap />} />
           <Route path="/store/:storeId" element={<StoreDetails />} />
           <Route path="/supplier/:supplierId" element={<SupplierDetails />} />
+          <Route path="/comparison/:storeId" element={<SupplierComparison />} />
           <Route path="/suppliers" element={<Suppliers />} />
           <Route path="/risk" element={<RiskAssessment />} />
           <Route path="/reports" element={<Reports />} />

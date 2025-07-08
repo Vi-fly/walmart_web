@@ -9,9 +9,10 @@ import {
     determineSupplierCluster,
     initializeAnimationManager
 } from '@/utils/clusterUtils';
+import AIChatbot from '@/components/AIChatbot';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Eye, EyeOff, Factory, Settings, StoreIcon, X } from 'lucide-react';
+import { Eye, EyeOff, Factory, MessageCircle, Settings, StoreIcon, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -22,6 +23,13 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
+
+// --- MODIFICATION START ---
+// TODO: Replace 'YOUR_REST_MAP_SDK_KEY' with your actual Mappls REST / Map SDK Key.
+// For better security, it's recommended to store this key in an environment variable.
+// For example: const MAPPLS_API_KEY = process.env.REACT_APP_MAPPLS_API_KEY;
+const MAPPLS_API_KEY = '8640f7cf68634beb60ee6aa109d5c5e1';
+// --- MODIFICATION END ---
 
 interface LossSupplier {
   supplier: Supplier;
@@ -531,11 +539,22 @@ const InteractiveMap = () => {
       keyboard: true,
     }).setView([39.8283, -98.5795], 4); // Centered on approximate center of US with full interaction enabled
 
-    // Add OpenStreetMap tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
-    }).addTo(map.current);
+    // --- MODIFICATION START ---
+    // Add Mappls tile layer instead of OpenStreetMap
+    if (!MAPPLS_API_KEY || MAPPLS_API_KEY === '8640f7cf68634beb60ee6aa109d5c5e1') {
+        console.error("Mappls API Key is not set. A fallback map is being used. Please replace 'YOUR_REST_MAP_SDK_KEY' with your actual key.");
+        // Add a fallback OpenStreetMap tile layer if the key is missing
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Mappls API Key Missing. Using Fallback: © OpenStreetMap contributors',
+            maxZoom: 19,
+        }).addTo(map.current);
+    } else {
+        L.tileLayer(`https://apis.mappls.com/maps/api/raster/v1/{z}/{x}/{y}.png?key=${MAPPLS_API_KEY}`, {
+            attribution: '© <a href="https://www.mappls.com/" target="_blank">Mappls</a> | © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+            maxZoom: 18,
+        }).addTo(map.current);
+    }
+    // --- MODIFICATION END ---
 
     // Initialize layer groups
     markersLayer.current = L.layerGroup().addTo(map.current);
@@ -574,11 +593,11 @@ const InteractiveMap = () => {
     return L.divIcon({
       html: `
         <div style="
-          background: linear-gradient(135deg, ${categoryColors[supplier.category] || '#6b7280'}, ${finalColor});
+          background: ${categoryColors[supplier.category] || '#6b7280'};
           width: ${size}px;
           height: ${size}px;
           border-radius: 4px;
-          border: 2px solid white;
+          border: 3px solid ${finalColor};
           box-shadow: 0 3px 8px rgba(0,0,0,0.3);
           display: flex;
           align-items: center;
@@ -588,11 +607,17 @@ const InteractiveMap = () => {
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         ">
           <div style="
-            width: ${size * 0.3}px;
-            height: ${size * 0.3}px;
+            width: ${size * 0.4}px;
+            height: ${size * 0.4}px;
             background: white;
-            border-radius: 1px;
-          "></div>
+            border-radius: 2px;
+            font-size: ${size * 0.25}px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: ${categoryColors[supplier.category] || '#6b7280'};
+          ">S</div>
         </div>
       `,
       className: 'custom-supplier-icon',
@@ -704,7 +729,15 @@ const InteractiveMap = () => {
           };
           handleClusterSelection(clusterData);
         });
-        
+        // Cluster category descriptions
+        const clusterCategoryDescriptions = {
+          'Sustainability': 'Suppliers focused on eco-friendly practices, reduced carbon footprint, and compliance with environmental standards.',
+          'Local Consumption': 'Suppliers that are geographically close and provide products tailored to local needs.',
+          'High Profit Margin': 'Suppliers offering products with high profitability and strong market demand.',
+          'Brand Value': 'Suppliers with strong brand recognition and reputation in the market.',
+          'Product Quality': 'Suppliers known for consistently high product quality and reliability.',
+          'Sustainable Agriculture': 'Suppliers practicing sustainable farming and resource management.'
+        };
         // Create cluster label
         const label = L.divIcon({
           html: `
@@ -730,26 +763,36 @@ const InteractiveMap = () => {
           iconSize: [120, 40],
           iconAnchor: [60, 20],
         });
-        
         const labelMarker = L.marker([avgLat, avgLon], {
           icon: label,
           interactive: false
         });
-        
+        // Add info button and tooltip to popup
+        const infoIcon = `<span style="display:inline-block;vertical-align:middle;margin-left:6px;cursor:pointer;" title="What is this cluster?" onmouseover="this.nextElementSibling.style.display='block'" onmouseout="this.nextElementSibling.style.display='none'">
+          <svg width="16" height="16" fill="currentColor" style="color:#2563eb;vertical-align:middle;" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" stroke="#2563eb" stroke-width="2" fill="#fff"/><text x="10" y="15" text-anchor="middle" font-size="13" font-family="Arial" fill="#2563eb">i</text></svg>
+        </span>
+        <span style="display:none;position:absolute;z-index:999;background:#fff;color:#222;border:1px solid #2563eb;padding:8px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.12);font-size:12px;left:30px;top:0;min-width:180px;max-width:260px;white-space:normal;">
+          ${clusterCategoryDescriptions[clusterType] || 'No description available.'}
+        </span>`;
         circle.bindPopup(`
-          <div class="p-3 min-w-64">
-            <h3 class="font-semibold text-sm mb-2">${clusterType} Alternative Cluster</h3>
-            <div class="space-y-1 text-xs">
-              <p><strong>Alternative Suppliers:</strong> ${suppliers.length}</p>
-              <p><strong>For Store:</strong> ${selectedStore.name}</p>
-              <p><strong>Average Risk Score:</strong> ${(suppliers.reduce((sum, s) => sum + s.riskScore, 0) / suppliers.length).toFixed(1)}</p>
+          <div class="p-3 min-w-64" style="position:relative;">
+            <h3 class="font-semibold text-sm mb-2 text-walmart-blue" style="display:flex;align-items:center;gap:4px;">
+              ${clusterType} Alternative Cluster
+              ${infoIcon}
+            </h3>
+            <div class="space-y-2 text-xs">
+              <div class="bg-blue-50 p-2 rounded">
+                <p class="font-medium text-blue-800">Alternative Suppliers: ${suppliers.length}</p>
+                <p class="text-blue-600">For Store: ${selectedStore.name}</p>
+              </div>
+              <p><strong>Average Risk Score:</strong> <span class="px-2 py-1 bg-gray-100 rounded">${(suppliers.reduce((sum, s) => sum + s.riskScore, 0) / suppliers.length).toFixed(1)}</span></p>
               <div class="mt-2">
                 <p class="font-medium">Suppliers:</p>
                 ${suppliers.slice(0, 3).map(s => `<p class="text-xs">• ${s.name}</p>`).join('')}
                 ${suppliers.length > 3 ? `<p class="text-xs">... and ${suppliers.length - 3} more</p>` : ''}
               </div>
-              <div class="mt-2 p-2 bg-blue-50 rounded">
-                <p class="text-xs text-blue-600">💡 Click to select this cluster and adjust parameters</p>
+              <div class="mt-3 p-2 bg-walmart-blue text-white rounded text-xs">
+                <p class="text-xs">💡 Click to select this cluster and adjust parameters</p>
               </div>
             </div>
           </div>
@@ -876,35 +919,26 @@ const InteractiveMap = () => {
         // Check if supplier belongs to the selected category
         const supplierCategory = supplier.category;
         if (supplierCategory !== selectedClusterCategory) {
-          console.log(`🚫 Filtering out supplier ${supplier.name} - category ${supplierCategory} doesn't match selected ${selectedClusterCategory}`);
           return false;
         }
-        console.log(`✅ Supplier ${supplier.name} matches selected category ${selectedClusterCategory}`);
+        // If a category is selected, show all suppliers in that category (skip parameter filtering)
+        return true;
       }
-
       // Parameter filtering logic - check if supplier meets minimum thresholds
       const matchingParams = Object.entries(clusterParameters).filter(([param, threshold]) => {
         const supplierValue = supplier[param as keyof typeof supplier];
         if (supplierValue === undefined || supplierValue === null) return false;
-        
         // Convert to number for comparison
         const numericValue = typeof supplierValue === 'number' ? supplierValue : Number(supplierValue);
         if (isNaN(numericValue)) return false;
-        
         return numericValue >= threshold;
       });
-
       const matchPercentage = (matchingParams.length / Object.keys(clusterParameters).length) * 100;
-      
       // Use different thresholds based on whether a specific category is selected
-      const displayThreshold = selectedClusterCategory ? 40 : 60; // Lower threshold for specific category
-      
+      const displayThreshold = 60; // Only applies when no category is selected
       if (matchPercentage < displayThreshold) {
-        console.log(`🚫 Supplier ${supplier.name} filtered out - ${matchPercentage.toFixed(1)}% match (threshold: ${displayThreshold}%)`);
         return false;
       }
-      
-      console.log(`✅ Supplier ${supplier.name} passed filtering - ${matchPercentage.toFixed(1)}% match`);
       return true;
     });
 
@@ -1090,7 +1124,7 @@ const InteractiveMap = () => {
         marker.bindPopup(`
           <div class="p-3 min-w-60">
             <div class="flex items-center justify-between mb-2">
-              <h3 class="font-semibold text-sm">${supplier.name} <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Alternative</span></h3>
+              <h3 class="font-semibold text-sm">${supplier.name} <span class="text-xs ${showAlternativeClusters ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'} px-2 py-1 rounded">${showAlternativeClusters ? 'Alternative' : 'Current'}</span></h3>
               <button onclick="window.closeSupplierPanel()" class="text-gray-500 hover:text-gray-700 text-lg font-bold" title="Close">
                 ×
               </button>
@@ -1234,11 +1268,11 @@ const InteractiveMap = () => {
     return L.divIcon({
       html: `
         <div style="
-          background: linear-gradient(135deg, ${colors[riskLevel]}, ${colors[riskLevel]}dd);
+          background: ${colors[riskLevel]};
           width: ${size}px;
           height: ${size}px;
           border-radius: 50%;
-          border: 3px solid white;
+          border: 4px solid white;
           box-shadow: 0 4px 12px rgba(0,0,0,0.3);
           display: flex;
           align-items: center;
@@ -1246,11 +1280,17 @@ const InteractiveMap = () => {
           position: relative;
         ">
           <div style="
-            width: 8px;
-            height: 8px;
+            width: ${size * 0.4}px;
+            height: ${size * 0.4}px;
             background: white;
             border-radius: 50%;
-          "></div>
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: ${size * 0.3}px;
+            font-weight: bold;
+            color: ${colors[riskLevel]};
+          ">W</div>
         </div>
       `,
       className: 'custom-store-icon',
@@ -1276,6 +1316,32 @@ const InteractiveMap = () => {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
+
+  // Prevent page scroll when hovering over map
+  useEffect(() => {
+    const mapElement = mapContainer.current;
+    if (!mapElement) return;
+
+    const handleMouseEnter = () => {
+      // Disable body scroll when mouse enters map
+      document.body.style.overflow = 'hidden';
+    };
+
+    const handleMouseLeave = () => {
+      // Re-enable body scroll when mouse leaves map
+      document.body.style.overflow = 'auto';
+    };
+
+    mapElement.addEventListener('mouseenter', handleMouseEnter);
+    mapElement.addEventListener('mouseleave', handleMouseLeave);
+    
+    return () => {
+      mapElement.removeEventListener('mouseenter', handleMouseEnter);
+      mapElement.removeEventListener('mouseleave', handleMouseLeave);
+      // Ensure scroll is re-enabled on cleanup
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
 
   useEffect(() => {
     // Load data first
@@ -1364,33 +1430,34 @@ const InteractiveMap = () => {
     return null; // Never render store details card
   };
 
-  if (isLoading) {
+      if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="flex items-center justify-center h-screen bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-walmart-blue mb-4"></div>
           <p className="text-xl font-semibold text-gray-700">Loading supply chain data...</p>
-          <p className="text-sm text-gray-500">This might take a moment.</p>
+          <p className="text-sm text-gray-500">Initializing AI-powered analytics...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="mb-6">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-walmart-blue to-walmart-light-blue bg-clip-text text-transparent">
-          Dynamic Supply Chain Map
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-          Real-time visualization with smooth cluster animations and dynamic parameter-based sizing
-        </p>
-      </div>
+      <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden relative">
+      <div className="p-6 h-full flex flex-col">
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold text-walmart-blue">
+            Dynamic Supply Chain Map
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
+            Real-time visualization with AI-powered supplier intelligence and dynamic clustering
+          </p>
+        </div>
 
-      <div className="flex gap-6 flex-1">
-        {/* Enhanced Controls Panel */}
-        <div className="w-96 space-y-4">
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+        <div className="flex gap-6 flex-1 overflow-hidden">
+          {/* Enhanced Controls Panel - Fixed with its own scroll */}
+          <div className="w-96 space-y-4 overflow-y-auto flex-shrink-0">
+        <Card className="bg-white border border-gray-200 shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-walmart-blue">
                 <Settings className="h-5 w-5" />
@@ -1412,7 +1479,7 @@ const InteractiveMap = () => {
               </div>
 
               {/* Force Update Button */}
-              <Button
+              {/* <Button
                 onClick={() => updateDynamicClustersWithAnimation(parameterUpdates)}
                 className="w-full"
                 variant="outline"
@@ -1420,7 +1487,7 @@ const InteractiveMap = () => {
               >
                 <Settings className="h-4 w-4 mr-2" />
                 {isAnimating ? 'Updating...' : 'Generate Clusters'}
-              </Button>
+              </Button> */}
 
 
               {/* Store Details Section */}
@@ -1479,8 +1546,19 @@ const InteractiveMap = () => {
                       <Factory className="h-4 w-4" />
                       Connected Suppliers ({selectedStore.suppliers.length})
                     </h4>
-                    <div className="text-xs text-gray-600 mb-3">
-                      {showAlternativeClusters ? 'Showing alternative suppliers with clusters' : 'Showing current suppliers'}
+                  <div className="text-xs p-2 rounded mb-3 ${showAlternativeClusters ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-green-50 text-green-700 border border-green-200'}">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full ${showAlternativeClusters ? 'bg-blue-500' : 'bg-green-500'}"></div>
+                        <span className="font-medium">
+                          {showAlternativeClusters ? 'AI Alternative Mode' : 'Current Supplier Mode'}
+                        </span>
+                      </div>
+                      <p className="text-xs mt-1">
+                        {showAlternativeClusters 
+                          ? 'Displaying AI-identified alternative suppliers with intelligent clustering'
+                          : 'Showing current suppliers and established connections'
+                        }
+                      </p>
                     </div>
                   </div>
                   
@@ -1508,9 +1586,9 @@ const InteractiveMap = () => {
                         }
                       }}
                       variant={showAlternativeClusters ? "default" : "outline"}
-                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+                      className={`w-full ${showAlternativeClusters ? 'bg-walmart-blue hover:bg-blue-700 text-white' : 'bg-white hover:bg-gray-50 text-walmart-blue border-walmart-blue'} transition-colors duration-200`}
                     >
-                      🤖 {showAlternativeClusters ? "Hide Clusters" : "Generate Clusters"}
+                      🤖 {showAlternativeClusters ? "Hide AI Clusters" : "Generate AI Clusters"}
                     </Button>
                   </div>
                   
@@ -1625,7 +1703,7 @@ const InteractiveMap = () => {
                           />
                         </div>
                         <div className="text-xs text-purple-600 bg-purple-100 p-2 rounded mt-3">
-                          💡 When a specific category is selected, only that cluster and its suppliers are displayed. When "All Categories" is selected, all clusters and suppliers are shown with moderate filtering (60% threshold).
+                          <strong>Note:</strong> When a specific category is selected, only that cluster and its suppliers are displayed. When "All Categories" is selected, all clusters and suppliers are shown with moderate filtering (60% threshold).
                         </div>
                       </div>
                     </div>
@@ -1643,7 +1721,7 @@ const InteractiveMap = () => {
                       Click a store to see its suppliers and options
                     </p>
                   </div>
-                </div>
+                               </div>
               )}
 
               {/* Supplier Details Panel */}
@@ -1701,12 +1779,32 @@ const InteractiveMap = () => {
                       )}
                     </div>
                   </div>
+                  
+                </div>
+              )}
+
+              {/* AI Assistant Section - Now in Left Panel */}
+              {(selectedSupplier || selectedStore) && (
+                <div className="border-t pt-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MessageCircle className="h-4 w-4 text-blue-600" />
+                    <h4 className="text-sm font-semibold text-gray-700">AI Assistant</h4>
+                  </div>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <AIChatbot 
+                      supplier={selectedSupplier}
+                      isOpen={true}
+                      onToggle={() => {}}
+                      isAlternative={showAlternativeClusters}
+                      stores={selectedStore ? [selectedStore] : []}
+                    />
+                  </div>
                 </div>
               )}
 
               {/* View Options */}
               <div className="grid grid-cols-2 gap-2">
-                <Button
+                {/* <Button
                   variant={showClusters ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setShowClusters(!showClusters)}
@@ -1714,8 +1812,8 @@ const InteractiveMap = () => {
                 >
                   {showClusters ? <Eye className="h-3 w-3 mr-1" /> : <EyeOff className="h-3 w-3 mr-1" />}
                   Animated Clusters
-                </Button>
-                <Button
+                </Button> */}
+                {/* <Button
                   variant={showConnections ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setShowConnections(!showConnections)}
@@ -1723,17 +1821,27 @@ const InteractiveMap = () => {
                 >
                   {showConnections ? <Eye className="h-3 w-3 mr-1" /> : <EyeOff className="h-3 w-3 mr-1" />}
                   Connections
-                </Button>
+                </Button> */}
               </div>
 
             </CardContent>
           </Card>
         </div>
 
-        {/* Map Container */}
-        <div className="flex-1 rounded-xl overflow-hidden shadow-2xl border-4 border-white relative">
-          <div ref={mapContainer} className="h-full w-full" />
-          
+          {/* Map Container - Fixed with scroll isolation */}
+          <div className="flex-1 rounded-xl overflow-hidden shadow-2xl border-4 border-white relative">
+            <div 
+              ref={mapContainer} 
+              className="h-full w-full" 
+              onWheel={(e) => {
+                // Allow map to handle its own scroll events
+                e.stopPropagation();
+              }}
+              style={{ 
+                touchAction: 'none' // Prevents default touch behaviors that might interfere
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>
