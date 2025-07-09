@@ -9,6 +9,26 @@
       "longitude": -81.6944,
       "performanceScore": 82,
       "clusterId": "Sustainability",
+      "benefits": [
+        {
+          "type": "Environmental Impact",
+          "description": "40% lower carbon footprint than current supplier",
+          "value": "40% reduction",
+          "impact": "Significant improvement in sustainability metrics"
+        },
+        {
+          "type": "Quality Assurance",
+          "description": "Certified organic with 100% traceability",
+          "value": "100% organic certified",
+          "impact": "Enhanced customer trust and premium positioning"
+        },
+        {
+          "type": "Reliability",
+          "description": "99.2% on-time delivery with advanced logistics",
+          "value": "99.2% OTD",
+          "impact": "Reduced stockouts and improved inventory management"
+        }
+      ],
       "parameters": {
         "sustainabilityScore": 95,
         "carbonFootprint": 0.02,
@@ -33,6 +53,26 @@
       "longitude": -77.0369,
       "performanceScore": 78,
       "clusterId": "Local Consumption",
+      "benefits": [
+        {
+          "type": "Cost Savings",
+          "description": "20% lower wholesale pricing on dairy products",
+          "value": "20% discount",
+          "impact": "Increased profit margins and competitive pricing opportunities"
+        },
+        {
+          "type": "Quality Standards",
+          "description": "Enhanced packaging and shelf life for dairy items",
+          "value": "Extended shelf life",
+          "impact": "Reduced spoilage and improved customer satisfaction"
+        },
+        {
+          "type": "Supply Stability",
+          "description": "Guaranteed supply during peak demand",
+          "value": "Reliable supply chain",
+          "impact": "Reduced stockouts and improved sales consistency"
+        }
+      ],
       "parameters": {
         "sustainabilityScore": 68,
         "carbonFootprint": 0.11,
@@ -174,7 +214,7 @@
       "name": "High Yield Enterprises",
       "supplies": ["Clothing", "Electronics", "Luxury Items"],
       "latitude": 38.7589,
-      "longitude": -71.9851,
+      "longitude": -76.9851,
       "performanceScore": 87,
       "clusterId": "High Profit Margin",
       "parameters": {

@@ -278,6 +278,34 @@ const Suppliers = () => {
                   </span>
                 </div>
                 
+                {/* Show Issues for current suppliers */}
+                {supplier.issues && supplier.issues.length > 0 && (
+                  <div className="pt-2 border-t">
+                    <div className="text-xs font-medium text-gray-700 mb-1">Current Issues:</div>
+                    <div className="space-y-1">
+                      {supplier.issues.slice(0, 2).map((issue, index) => (
+                        <div key={index} className="flex items-start gap-2">
+                          <div className={`w-2 h-2 rounded-full mt-1 ${
+                            issue.severity === 'high' ? 'bg-red-500' :
+                            issue.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                          }`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-medium text-gray-800 truncate">
+                              {issue.type}
+                            </div>
+                            <div className="text-xs text-gray-600 truncate">
+                              {issue.description}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {supplier.issues.length > 2 && (
+                        <div className="text-xs text-gray-500">+ {supplier.issues.length - 2} more issues</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="pt-2 border-t">
                   <div className="text-xs text-gray-500">
                     Last Audit: {supplier.lastAudit}

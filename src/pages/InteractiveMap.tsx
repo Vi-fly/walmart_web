@@ -15,6 +15,7 @@ import 'leaflet/dist/leaflet.css';
 import { Eye, EyeOff, Factory, MessageCircle, Settings, StoreIcon, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSidebar } from '@/components/ui/sidebar';
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -47,6 +48,7 @@ interface AlternativeGroup {
 
 const InteractiveMap = () => {
   const navigate = useNavigate();
+  const { state: sidebarState } = useSidebar();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
@@ -326,6 +328,7 @@ const InteractiveMap = () => {
         address: `${alt.name} Headquarters`,
         establishedYear: Math.floor(Math.random() * 30) + 1990,
         employeeCount: Math.floor(Math.random() * 500) + 50,
+        benefits: alt.benefits || undefined,
       }));
       
       setAlternativeSuppliers(transformedAlternatives);
@@ -1155,6 +1158,47 @@ const InteractiveMap = () => {
               <p><strong>Range:</strong> ${supplier.deliveryRadius} km</p>
               <p><strong>Products:</strong> ${supplier.products.slice(0, 2).join(', ')}${supplier.products.length > 2 ? '...' : ''}</p>
               ${selectedStore ? `<p><strong>Distance to Store:</strong> ${getDistance(supplier.coordinates, selectedStore.coordinates).toFixed(1)} km</p>` : ''}
+              
+              ${!showAlternativeClusters && supplier.issues && supplier.issues.length > 0 ? `
+                <div class="mt-2 pt-2 border-t">
+                  <div class="text-xs font-medium text-gray-700 mb-1">Current Issues:</div>
+                  <div class="space-y-1">
+                    ${supplier.issues.slice(0, 2).map(issue => `
+                      <div class="flex items-start gap-2">
+                        <div class="w-2 h-2 rounded-full mt-1 ${
+                          issue.severity === 'high' ? 'bg-red-500' :
+                          issue.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                        }"></div>
+                        <div class="flex-1 min-w-0">
+                          <div class="text-xs font-medium text-gray-800 truncate">${issue.type}</div>
+                          <div class="text-xs text-gray-600 truncate">${issue.description}</div>
+                        </div>
+                      </div>
+                    `).join('')}
+                    ${supplier.issues.length > 2 ? `<div class="text-xs text-gray-500">+ ${supplier.issues.length - 2} more issues</div>` : ''}
+                  </div>
+                </div>
+              ` : ''}
+              
+              ${showAlternativeClusters && supplier.benefits && supplier.benefits.length > 0 ? `
+                <div class="mt-2 pt-2 border-t">
+                  <div class="text-xs font-medium text-gray-700 mb-1">Key Benefits:</div>
+                  <div class="space-y-1">
+                    ${supplier.benefits.slice(0, 2).map(benefit => `
+                      <div class="flex items-start gap-2">
+                        <div class="w-2 h-2 rounded-full mt-1 bg-green-500"></div>
+                        <div class="flex-1 min-w-0">
+                          <div class="text-xs font-medium text-gray-800 truncate">${benefit.type}</div>
+                          <div class="text-xs text-gray-600 truncate">${benefit.description}</div>
+                          <div class="text-xs text-blue-600 font-medium">${benefit.value}</div>
+                        </div>
+                      </div>
+                    `).join('')}
+                    ${supplier.benefits.length > 2 ? `<div class="text-xs text-gray-500">+ ${supplier.benefits.length - 2} more benefits</div>` : ''}
+                  </div>
+                </div>
+              ` : ''}
+              
               <div class="mt-3 pt-2 border-t">
                 <button onclick="window.viewSupplierDetails('${supplier.id}')" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs py-1 px-2 rounded">
                   View More Details
@@ -1455,13 +1499,22 @@ const InteractiveMap = () => {
         </div>
 
         <div className="flex gap-6 flex-1 overflow-hidden">
-          {/* Enhanced Controls Panel - Fixed with its own scroll */}
-          <div className="w-96 space-y-4 overflow-y-auto flex-shrink-0">
+          {/* Enhanced Controls Panel - Responsive based on sidebar state */}
+          <div className={`${
+            sidebarState === 'collapsed' 
+              ? 'w-[28rem] space-y-6' 
+              : 'w-96 space-y-4'
+          } overflow-y-auto flex-shrink-0 transition-all duration-300 ease-in-out`}>
         <Card className="bg-white border border-gray-200 shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-walmart-blue">
                 <Settings className="h-5 w-5" />
                 Real-Time Controls
+                {sidebarState === 'collapsed' && (
+                  <span className="ml-auto text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    Expanded View
+                  </span>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1790,9 +1843,11 @@ const InteractiveMap = () => {
                     <MessageCircle className="h-4 w-4 text-blue-600" />
                     <h4 className="text-sm font-semibold text-gray-700">AI Assistant</h4>
                   </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <div className={`bg-gray-50 border border-gray-200 rounded-lg ${
+                    sidebarState === 'collapsed' ? 'p-4' : 'p-3'
+                  }`}>
                     <AIChatbot 
-                      supplier={selectedSupplier}
+                      supplier={selectedSupplier || (selectedStore && selectedStore.suppliers.length > 0 ? suppliers.find(s => s.id === selectedStore.suppliers[0]) : null)}
                       isOpen={true}
                       onToggle={() => {}}
                       isAlternative={showAlternativeClusters}
@@ -1828,11 +1883,15 @@ const InteractiveMap = () => {
           </Card>
         </div>
 
-          {/* Map Container - Fixed with scroll isolation */}
-          <div className="flex-1 rounded-xl overflow-hidden shadow-2xl border-4 border-white relative">
+          {/* Map Container - Fixed size with scroll isolation */}
+          <div className={`rounded-xl overflow-hidden shadow-2xl border-4 border-white relative transition-all duration-300 ease-in-out ${
+            sidebarState === 'collapsed' 
+              ? 'w-[calc(100vw-32rem-3rem)]' // Account for collapsed sidebar (3rem) + expanded panel (32rem)
+              : 'w-[calc(100vw-32rem-15rem)]' // Account for expanded sidebar (15rem) + normal panel (32rem)
+          }`}>
             <div 
               ref={mapContainer} 
-              className="h-full w-full" 
+              className="h-full w-full"
               onWheel={(e) => {
                 // Allow map to handle its own scroll events
                 e.stopPropagation();

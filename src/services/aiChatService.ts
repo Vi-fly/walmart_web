@@ -16,6 +16,13 @@ interface ChatSession {
     stores?: Store[];
     isAlternative: boolean;
     selectedStoreId?: string;
+    storeProblems?: any[];
+    contextType: 'supplier' | 'store' | 'alternative';
+    currentSelection?: {
+      type: 'supplier' | 'store';
+      id: string;
+      name: string;
+    };
   };
 }
 
@@ -62,9 +69,39 @@ class AIChatService {
   ): Promise<string> {
     const sessionId = `${supplierId}-${Date.now()}`;
     
+    // Determine context type
+    let contextType: 'supplier' | 'store' | 'alternative';
+    let currentSelection: { type: 'supplier' | 'store'; id: string; name: string } | undefined;
+    
+    if (supplier.id === 'store-context') {
+      contextType = 'store';
+      const targetStore = stores.find(s => s.id === selectedStoreId) || stores[0];
+      if (targetStore) {
+        currentSelection = { type: 'store', id: targetStore.id, name: targetStore.name };
+      }
+    } else if (isAlternative) {
+      contextType = 'alternative';
+      currentSelection = { type: 'supplier', id: supplier.id, name: supplier.name };
+    } else {
+      contextType = 'supplier';
+      currentSelection = { type: 'supplier', id: supplier.id, name: supplier.name };
+    }
+    
     // Fetch fresh data from JSON
     const freshSupplierData = await this.fetchSupplierData(supplierId, isAlternative);
     const enrichedSupplier = this.enrichSupplierData(supplier, freshSupplierData);
+    
+    // Collect store problems related to this supplier
+    const storeProblems = stores.flatMap(store => {
+      if (store.problems) {
+        return [
+          ...store.problems.products.filter(p => p.affectedSuppliers.includes(supplierId)),
+          ...store.problems.services.map(s => ({ ...s, type: 'service', storeId: store.id, storeName: store.name })),
+          ...store.problems.operational.map(o => ({ ...o, type: 'operational', storeId: store.id, storeName: store.name }))
+        ];
+      }
+      return [];
+    });
     
     const session: ChatSession = {
       id: sessionId,
@@ -74,7 +111,10 @@ class AIChatService {
         supplier: enrichedSupplier,
         stores,
         isAlternative,
-        selectedStoreId
+        selectedStoreId,
+        storeProblems,
+        contextType,
+        currentSelection
       }
     };
 
@@ -193,55 +233,155 @@ class AIChatService {
   }
 
   private buildEnhancedPrompt(session: ChatSession): string {
-    const { supplier, stores, isAlternative, selectedStoreId } = session.context;
+    const { supplier, stores, isAlternative, selectedStoreId, storeProblems, contextType, currentSelection } = session.context;
     
     const bold = (text: string) => `**${text}**`;
     
-    let context = `You are an expert AI for Walmart Supply Chain Analysis. Respond with ${bold('short')}, ${bold('actionable')} insights using ${bold('**bold**')} for key data points.\n\n`;
+    let context = `You are an expert AI for Walmart Supply Chain Analysis. You must respond with accurate, current data based on the EXACT context provided. Use ${bold('**bold**')} for key metrics and be concise.\n\n`;
     
-    context += `${bold('Supplier')}: ${supplier.name} (${supplier.category})\n`;
-    context += `${bold('Type')}: ${isAlternative ? 'Alternative Supplier' : 'Current Supplier'}\n`;
-    context += `${bold('Risk Score')}: ${supplier.riskScore}/100\n`;
-    context += `${bold('Sustainability')}: ${supplier.sustainabilityScore || 'N/A'}/100\n`;
-    context += `${bold('Product Quality')}: ${supplier.productQuality || 'N/A'}/100\n`;
-    context += `${bold('Profit Margin')}: ${supplier.profitMargin || 'N/A'}%\n`;
-    context += `${bold('Local Relevance')}: ${supplier.localRelevance || 'N/A'}\n`;
-    context += `${bold('Products')}: ${supplier.products.slice(0, 3).join(', ')}\n`;
+    // Add current selection context
+    if (currentSelection) {
+      context += `${bold('CURRENT SELECTION')}: ${currentSelection.name} (${currentSelection.type.toUpperCase()})\n`;
+      context += `${bold('SELECTION ID')}: ${currentSelection.id}\n`;
+    }
     
-    if (stores && stores.length > 0) {
-      const targetStore = selectedStoreId ? stores.find(s => s.id === selectedStoreId) : stores[0];
-      if (targetStore) {
-        context += `${bold('Target Store')}: ${targetStore.name} (Revenue: ₹${targetStore.monthlyRevenue.toLocaleString()}/mo)\n`;
+    // Handle different context types
+    switch (contextType) {
+      case 'store':
+        const targetStore = stores?.find(s => s.id === selectedStoreId) || stores?.[0];
+        if (targetStore) {
+          context += `${bold('STORE CONTEXT')}:\n`;
+          context += `${bold('Store Name')}: ${targetStore.name}\n`;
+          context += `${bold('Store Type')}: ${targetStore.type}\n`;
+          context += `${bold('Location')}: ${targetStore.address}\n`;
+          context += `${bold('Risk Score')}: ${targetStore.riskScore}/100\n`;
+          context += `${bold('Monthly Revenue')}: ₹${targetStore.monthlyRevenue?.toLocaleString()}\n`;
+          context += `${bold('Customer Count')}: ${targetStore.customerCount?.toLocaleString()}\n`;
+          context += `${bold('Connected Suppliers')}: ${targetStore.suppliers?.length || 0}\n`;
+          
+          // Add store issues if available
+          if (targetStore.issues && targetStore.issues.length > 0) {
+            context += `${bold('Store Issues')}: ${targetStore.issues.join(', ')}\n`;
+          }
+        }
+        break;
+        
+      case 'alternative':
+        context += `${bold('ALTERNATIVE SUPPLIER CONTEXT')}:\n`;
+        context += `${bold('Supplier Name')}: ${supplier.name}\n`;
+        context += `${bold('Category')}: ${supplier.category}\n`;
+        context += `${bold('Risk Score')}: ${supplier.riskScore}/100\n`;
+        context += `${bold('Sustainability Score')}: ${supplier.sustainabilityScore || 'N/A'}/100\n`;
+        context += `${bold('Product Quality')}: ${supplier.productQuality || 'N/A'}/100\n`;
+        context += `${bold('Profit Margin')}: ${supplier.profitMargin || 'N/A'}%\n`;
+        context += `${bold('Local Relevance')}: ${supplier.localRelevance || 'N/A'}\n`;
+        context += `${bold('Products/Services')}: ${supplier.products.slice(0, 3).join(', ')}\n`;
+        context += `${bold('Contract Value')}: ₹${supplier.contractValue?.toLocaleString()}\n`;
+        break;
+        
+      default: // current supplier
+        context += `${bold('CURRENT SUPPLIER CONTEXT')}:\n`;
+        context += `${bold('Supplier Name')}: ${supplier.name}\n`;
+        context += `${bold('Category')}: ${supplier.category}\n`;
+        context += `${bold('Risk Score')}: ${supplier.riskScore}/100\n`;
+        context += `${bold('Sustainability Score')}: ${supplier.sustainabilityScore || 'N/A'}/100\n`;
+        context += `${bold('Product Quality')}: ${supplier.productQuality || 'N/A'}/100\n`;
+        context += `${bold('Profit Margin')}: ${supplier.profitMargin || 'N/A'}%\n`;
+        context += `${bold('Local Relevance')}: ${supplier.localRelevance || 'N/A'}\n`;
+        context += `${bold('Products/Services')}: ${supplier.products.slice(0, 3).join(', ')}\n`;
+        context += `${bold('Contract Value')}: ₹${supplier.contractValue?.toLocaleString()}\n`;
+        context += `${bold('Performance Trend')}: ${supplier.performanceTrend}\n`;
+        
+        // Add supplier issues if available
+        if (supplier.issues && supplier.issues.length > 0) {
+          context += `${bold('Current Issues')}:\n`;
+          supplier.issues.forEach(issue => {
+            context += `- ${issue.type}: ${issue.description} (${issue.severity} severity, ${issue.status})\n`;
+          });
+        }
+        break;
+    }
+    
+    // Add related store context if available
+    if (stores && stores.length > 0 && contextType !== 'store') {
+      const relatedStore = selectedStoreId ? stores.find(s => s.id === selectedStoreId) : stores[0];
+      if (relatedStore) {
+        context += `${bold('Related Store')}: ${relatedStore.name}\n`;
       }
     }
     
-    if (isAlternative) {
-      context += `\n${bold('FOCUS')}: Highlight competitive advantages, cost savings, and implementation strategy.`;
-    } else {
-      context += `\n${bold('FOCUS')}: Identify performance issues, risk mitigation, and optimization opportunities.`;
+    // Add store problems context
+    if (storeProblems && storeProblems.length > 0) {
+      context += `\n${bold('Related Store Problems')}:\n`;
+      storeProblems.slice(0, 3).forEach(problem => {
+        context += `- ${problem.storeName}: ${problem.description} (${problem.severity} severity, ${problem.status})\n`;
+      });
     }
+    
+    // Add focus instructions based on context
+    switch (contextType) {
+      case 'store':
+        context += `\n${bold('FOCUS')}: Analyze store operations, supplier management, and provide actionable recommendations for store optimization. Answer questions about store performance, issues, and supplier relationships.`;
+        break;
+      case 'alternative':
+        context += `\n${bold('FOCUS')}: Highlight competitive advantages, benefits, cost savings, and implementation strategy for this alternative supplier. Compare with current suppliers when relevant.`;
+        break;
+      default:
+        context += `\n${bold('FOCUS')}: Analyze current supplier performance, identify issues, risk mitigation strategies, and optimization opportunities. Address problems and provide improvement recommendations.`;
+    }
+    
+    context += `\n\n${bold('IMPORTANT')}: Use ONLY the data provided above. Do not reference outdated information like 'Rocky Mountain Fresh' or 'Denver, CO' unless they are specifically mentioned in the current context.`;
     
     return context;
   }
 
   private generateMockResponse(session: ChatSession, userMessage: string): ChatMessage {
-    const { supplier, isAlternative } = session.context;
+    const { supplier, isAlternative, stores, storeProblems, contextType, currentSelection } = session.context;
     const lowerMessage = userMessage.toLowerCase();
     
     let mockResponse = '';
-
-    if (lowerMessage.includes('risk') || lowerMessage.includes('issue')) {
-      if (isAlternative) {
-        mockResponse = `This alternative supplier shows a ${supplier.riskScore}/100 risk score, which ${supplier.riskScore > 70 ? 'indicates lower risk' : 'requires attention'}. Key advantages include ${supplier.sustainabilityScore && supplier.sustainabilityScore > 70 ? 'strong sustainability practices' : 'competitive pricing'}. I recommend evaluating their ${supplier.performanceTrend === 'improving' ? 'improving performance trend' : 'current capabilities'} for potential integration.`;
+    
+    // Handle different context types
+    if (contextType === 'store' && stores && stores.length > 0) {
+      const store = stores[0];
+      if (lowerMessage.includes('name') || lowerMessage.includes('what is')) {
+        mockResponse = `**Current Selection**: ${store.name} (${store.type})\n**Location**: ${store.address}\n**Store ID**: ${store.id}\n**Risk Score**: ${store.riskScore}/100\n**Monthly Revenue**: ₹${store.monthlyRevenue?.toLocaleString()}\n**Customer Count**: ${store.customerCount?.toLocaleString()}\n**Connected Suppliers**: ${store.suppliers?.length || 0}`;
+      } else if (lowerMessage.includes('supplier') || lowerMessage.includes('list')) {
+        const supplierCount = store.suppliers?.length || 0;
+        mockResponse = `**${store.name} Suppliers**: This store works with **${supplierCount} suppliers**. ${supplierCount > 0 ? 'Click on individual suppliers on the map or supplier list to get detailed analysis for each one.' : 'No suppliers currently connected to this store.'}`;
+      } else if (lowerMessage.includes('problem') || lowerMessage.includes('issue')) {
+        const problemCount = storeProblems?.length || 0;
+        const storeIssues = store.issues || [];
+        mockResponse = `**Store Issues Analysis**: ${store.name} has **${storeIssues.length} store-level issues** and **${problemCount} supplier-related problems**. ${storeIssues.length > 0 ? `Store issues: ${storeIssues.join(', ')}. ` : ''}${problemCount > 0 ? 'Supplier problems include inventory management, quality control, and delivery coordination.' : 'No major supplier problems reported.'}`;
       } else {
-        mockResponse = `Current risk analysis shows ${supplier.riskScore}/100 score. Main concerns: ${supplier.riskBreakdown.financial > 5 ? 'financial stability, ' : ''}${supplier.riskBreakdown.quality > 5 ? 'quality control, ' : ''}${supplier.riskBreakdown.delivery > 5 ? 'delivery reliability' : ''}. Recommend implementing risk mitigation strategies and performance monitoring.`;
+        mockResponse = `**Store Analysis**: ${store.name} performance indicators show revenue of **₹${store.monthlyRevenue?.toLocaleString()}/month** with **${store.customerCount?.toLocaleString()} customers**. Risk score: **${store.riskScore}/100**. How can I help you optimize store operations?`;
       }
-    } else if (lowerMessage.includes('cost') || lowerMessage.includes('profit')) {
-      mockResponse = `Cost analysis: Contract value ₹${supplier.contractValue.toLocaleString()}, ${supplier.profitMargin ? `profit margin ${supplier.profitMargin}%` : 'competitive pricing structure'}. ${isAlternative ? 'Potential savings through optimized logistics and improved efficiency ratios.' : 'Consider renegotiating terms based on performance metrics.'}`;
-    } else if (lowerMessage.includes('quality')) {
-      mockResponse = `Quality metrics: ${supplier.productQuality || 75}/100 score. Certifications: ${supplier.certifications.join(', ')}. ${isAlternative ? 'Offers enhanced quality standards with proven track record.' : 'Recommend quality improvement initiatives and regular audits.'}`;
+    } else if (contextType === 'alternative') {
+      if (lowerMessage.includes('name') || lowerMessage.includes('what is')) {
+        mockResponse = `**Alternative Supplier**: ${supplier.name}\n**Category**: ${supplier.category}\n**Risk Score**: ${supplier.riskScore}/100\n**Sustainability**: ${supplier.sustainabilityScore || 'N/A'}/100\n**Product Quality**: ${supplier.productQuality || 'N/A'}/100\n**Profit Margin**: ${supplier.profitMargin || 'N/A'}%\n**Contract Value**: ₹${supplier.contractValue?.toLocaleString()}`;
+      } else if (lowerMessage.includes('benefit') || lowerMessage.includes('advantage')) {
+        mockResponse = `**Key Benefits of ${supplier.name}**: ${supplier.riskScore > 70 ? 'Lower risk profile, ' : ''}${supplier.sustainabilityScore && supplier.sustainabilityScore > 70 ? 'Strong sustainability practices, ' : ''}${supplier.productQuality && supplier.productQuality > 80 ? 'High product quality, ' : ''}${supplier.profitMargin && supplier.profitMargin > 15 ? 'Good profit margins' : 'Competitive pricing'}. Consider for integration based on current needs.`;
+      } else if (lowerMessage.includes('risk') || lowerMessage.includes('issue')) {
+        mockResponse = `**Risk Assessment**: ${supplier.name} shows a **${supplier.riskScore}/100** risk score. ${supplier.riskScore > 70 ? 'This indicates lower risk and good reliability.' : 'Monitor this supplier closely and consider risk mitigation strategies.'} Key advantages include ${supplier.sustainabilityScore && supplier.sustainabilityScore > 70 ? 'strong sustainability practices' : 'competitive positioning'}.`;
+      } else {
+        mockResponse = `**${supplier.name} Overview**: Alternative supplier in **${supplier.category}** category with **${supplier.riskScore}/100** risk score. Products: ${supplier.products.slice(0, 3).join(', ')}. Contract value: **₹${supplier.contractValue?.toLocaleString()}**. What specific aspect would you like to analyze?`;
+      }
     } else {
-      mockResponse = `${supplier.name} overview: ${isAlternative ? 'Alternative supplier' : 'Current supplier'} with ${supplier.riskScore}/100 risk score, ${supplier.performanceTrend} performance trend. Established ${supplier.establishedYear}, serving ${supplier.products.length} product categories. Contact me for specific areas of analysis.`;
+      // Current supplier context
+      if (lowerMessage.includes('name') || lowerMessage.includes('what is')) {
+        mockResponse = `**Current Supplier**: ${supplier.name}\n**Category**: ${supplier.category}\n**Risk Score**: ${supplier.riskScore}/100\n**Performance Trend**: ${supplier.performanceTrend}\n**Contract Value**: ₹${supplier.contractValue?.toLocaleString()}\n**Products**: ${supplier.products.slice(0, 3).join(', ')}`;
+      } else if (lowerMessage.includes('issue') || lowerMessage.includes('problem')) {
+        const issues = supplier.issues || [];
+        if (issues.length > 0) {
+          mockResponse = `**Current Issues with ${supplier.name}**: ${issues.length} active issues:\n${issues.map(issue => `• **${issue.type}**: ${issue.description} (${issue.severity} severity, ${issue.status})`).join('\n')}\n\nRecommend addressing these issues through supplier performance meetings and corrective action plans.`;
+        } else {
+          mockResponse = `**${supplier.name} Status**: No major issues currently reported. Risk score: **${supplier.riskScore}/100**. Performance trend: **${supplier.performanceTrend}**. Continue monitoring for optimal performance.`;
+        }
+      } else if (lowerMessage.includes('risk')) {
+        mockResponse = `**Risk Analysis**: ${supplier.name} shows **${supplier.riskScore}/100** risk score. ${supplier.riskScore > 70 ? 'This indicates good performance with low risk.' : 'Monitor this supplier closely for potential issues.'} Performance trend: **${supplier.performanceTrend}**. ${supplier.issues && supplier.issues.length > 0 ? `Current issues: ${supplier.issues.length} active problems requiring attention.` : 'No major issues reported.'}`;
+      } else {
+        mockResponse = `**${supplier.name} Overview**: Current supplier in **${supplier.category}** category with **${supplier.riskScore}/100** risk score and **${supplier.performanceTrend}** performance trend. Contract value: **₹${supplier.contractValue?.toLocaleString()}**. What would you like to analyze?`;
+      }
     }
 
     return {
@@ -250,6 +390,62 @@ class AIChatService {
       content: mockResponse,
       timestamp: new Date()
     };
+  }
+
+  // Update session context when user changes selection
+  async updateSessionContext(
+    sessionId: string,
+    supplier: Supplier,
+    stores: Store[] = [],
+    isAlternative: boolean = false,
+    selectedStoreId?: string
+  ): Promise<boolean> {
+    const session = this.sessions.get(sessionId);
+    if (!session) return false;
+
+    // Determine new context type
+    let contextType: 'supplier' | 'store' | 'alternative';
+    let currentSelection: { type: 'supplier' | 'store'; id: string; name: string } | undefined;
+    
+    if (supplier.id === 'store-context') {
+      contextType = 'store';
+      const targetStore = stores.find(s => s.id === selectedStoreId) || stores[0];
+      if (targetStore) {
+        currentSelection = { type: 'store', id: targetStore.id, name: targetStore.name };
+      }
+    } else if (isAlternative) {
+      contextType = 'alternative';
+      currentSelection = { type: 'supplier', id: supplier.id, name: supplier.name };
+    } else {
+      contextType = 'supplier';
+      currentSelection = { type: 'supplier', id: supplier.id, name: supplier.name };
+    }
+
+    // Fetch fresh supplier data
+    const freshSupplierData = await this.fetchSupplierData(supplier.id, isAlternative);
+    const enrichedSupplier = this.enrichSupplierData(supplier, freshSupplierData);
+
+    // Update context
+    session.context = {
+      ...session.context,
+      supplier: enrichedSupplier,
+      stores,
+      isAlternative,
+      selectedStoreId,
+      contextType,
+      currentSelection
+    };
+
+    // Add context change message
+    const contextChangeMessage: ChatMessage = {
+      id: `context-change-${Date.now()}`,
+      role: 'assistant',
+      content: `Context updated to ${currentSelection?.name || 'unknown'}. I'm now ready to help you analyze ${contextType === 'store' ? 'store operations and supplier management' : contextType === 'alternative' ? 'this alternative supplier' : 'this current supplier'}. What would you like to know?`,
+      timestamp: new Date()
+    };
+
+    session.messages.push(contextChangeMessage);
+    return true;
   }
 
   getSession(sessionId: string): ChatSession | undefined {

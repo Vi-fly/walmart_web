@@ -15,6 +15,26 @@
           "latitude": 42.3601,
           "longitude": -71.0589,
           "performanceScore": 75,
+          "issues": [
+            {
+              "type": "Quality Control",
+              "description": "Inconsistent organic certification for seasonal produce",
+              "severity": "medium",
+              "reportedDate": "2024-01-15",
+              "status": "in-progress",
+              "affectedProducts": ["Organic Vegetables", "Seasonal Fruits"],
+              "impact": "Customer complaints about product authenticity"
+            },
+            {
+              "type": "Delivery Delays",
+              "description": "Weather-related delays during winter months",
+              "severity": "low",
+              "reportedDate": "2024-01-10",
+              "status": "open",
+              "affectedProducts": ["Fresh Produce"],
+              "impact": "Minor stockouts during peak demand"
+            }
+          ],
           "parameters": {
             "sustainabilityScore": 95,
             "carbonFootprint": 0.03,
@@ -37,6 +57,26 @@
           "latitude": 39.9526,
           "longitude": -75.1652,
           "performanceScore": 80,
+          "issues": [
+            {
+              "type": "Quality Issues",
+              "description": "Defective dairy batches with reduced shelf life",
+              "severity": "high",
+              "reportedDate": "2024-01-20",
+              "status": "in-progress",
+              "affectedProducts": ["Milk", "Yogurt", "Cheese"],
+              "impact": "Customer complaints and product returns"
+            },
+            {
+              "type": "Packaging Problems",
+              "description": "Leaking milk containers causing product waste",
+              "severity": "medium",
+              "reportedDate": "2024-01-18",
+              "status": "open",
+              "affectedProducts": ["Milk Containers"],
+              "impact": "Increased waste and customer dissatisfaction"
+            }
+          ],
           "parameters": {
             "sustainabilityScore": 70,
             "carbonFootprint": 0.12,
@@ -48,7 +88,7 @@
             "localRelevance": 0.95,
             "productQuality": 88,
             "availability": 92,
-            "profitMargin": 12,
+            "profitMargin": 15,
             "brandRecognition": 50
           }
         },
@@ -59,6 +99,26 @@
           "latitude": 43.0642,
           "longitude": -87.9073,
           "performanceScore": 77,
+          "issues": [
+            {
+              "type": "Fruit Quality",
+              "description": "Overripe fruits arriving at stores",
+              "severity": "medium",
+              "reportedDate": "2024-01-22",
+              "status": "open",
+              "affectedProducts": ["Apples", "Bananas", "Oranges"],
+              "impact": "Reduced shelf life and customer satisfaction"
+            },
+            {
+              "type": "Compliance",
+              "description": "Inconsistent organic certification documentation",
+              "severity": "low",
+              "reportedDate": "2024-01-25",
+              "status": "resolved",
+              "affectedProducts": ["Organic Fruits"],
+              "impact": "Temporary hold on organic produce sales"
+            }
+          ],
           "parameters": {
             "sustainabilityScore": 65,
             "carbonFootprint": 0.1,
@@ -79,7 +139,7 @@
           "name": "Tech Solutions Inc",
           "supplies": ["Electronics", "Appliances", "Smart Devices"],
           "latitude": 40.7589,
-          "longitude": -73.9851,
+          "longitude": -80.9851,
           "performanceScore": 88,
           "parameters": {
             "sustainabilityScore": 75,
@@ -100,8 +160,8 @@
           "id": "SUP005",
           "name": "Fashion Forward",
           "supplies": ["Clothing", "Accessories", "Footwear"],
-          "latitude": 40.7505,
-          "longitude": -73.9934,
+          "latitude": 39.7505,
+          "longitude": -75.9934,
           "performanceScore": 82,
           "parameters": {
             "sustainabilityScore": 60,
@@ -125,6 +185,26 @@
           "latitude": 60.7128,
           "longitude": -74.0060,
           "performanceScore": 85,
+          "issues": [
+            {
+              "type": "Packaging Defects",
+              "description": "Damaged snack packaging causing product contamination",
+              "severity": "medium",
+              "reportedDate": "2024-01-28",
+              "status": "in-progress",
+              "affectedProducts": ["Chips", "Crackers"],
+              "impact": "Customer complaints and returns"
+            },
+            {
+              "type": "Supply Chain",
+              "description": "Delayed shipments during peak demand periods",
+              "severity": "low",
+              "reportedDate": "2024-01-30",
+              "status": "open",
+              "affectedProducts": ["Energy Drinks"],
+              "impact": "Stockouts during high-demand periods"
+            }
+          ],
           "parameters": {
             "sustainabilityScore": 55,
             "carbonFootprint": 0.18,
@@ -144,7 +224,7 @@
           "id": "SUP007",
           "name": "Home Essentials",
           "supplies": ["Home Goods", "Kitchenware", "Cleaning Supplies"],
-          "latitude": 40.7589,
+          "latitude": 40.9589,
           "longitude": -73.9851,
           "performanceScore": 78,
           "parameters": {
@@ -167,7 +247,7 @@
           "name": "Health & Beauty Pro",
           "supplies": ["Personal Care", "Beauty Products", "Vitamins"],
           "latitude": 40.7505,
-          "longitude": -73.9934,
+          "longitude": -75.9934,
           "performanceScore": 83,
           "parameters": {
             "sustainabilityScore": 65,

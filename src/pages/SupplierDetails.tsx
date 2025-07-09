@@ -143,6 +143,7 @@ const SupplierDetails = () => {
                 address: `${altSupplierData.name} Headquarters`,
                 establishedYear: Math.floor(Math.random() * 30) + 1990,
                 employeeCount: Math.floor(Math.random() * 500) + 50,
+                benefits: altSupplierData.benefits || undefined,
               } as Supplier;
             }
           } catch (error) {
@@ -625,7 +626,7 @@ const SupplierDetails = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8 bg-gray-50 p-1 rounded-lg">
+          <TabsList className="grid w-full grid-cols-9 bg-gray-50 p-1 rounded-lg">
             <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
               <BarChart3 className="h-4 w-4 mr-1" />
               Overview
@@ -633,6 +634,10 @@ const SupplierDetails = () => {
             <TabsTrigger value="partners" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
               <Building2 className="h-4 w-4 mr-1" />
               Partners
+            </TabsTrigger>
+            <TabsTrigger value="issues" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <AlertTriangle className="h-4 w-4 mr-1" />
+              Issues ({supplier.issues?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="benefits" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
               <Target className="h-4 w-4 mr-1" />
@@ -797,6 +802,106 @@ const SupplierDetails = () => {
             </div>
           </TabsContent>
 
+          {/* Issues Tab */}
+          <TabsContent value="issues" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                  Current Issues & Problems
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Active issues requiring attention and resolution
+                </p>
+              </CardHeader>
+              <CardContent>
+                {supplier.issues && supplier.issues.length > 0 ? (
+                  <div className="space-y-4">
+                    {supplier.issues.map((issue, index) => (
+                      <div key={index} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className={`h-5 w-5 ${
+                              issue.severity === 'high' ? 'text-red-500' :
+                              issue.severity === 'medium' ? 'text-yellow-500' :
+                              issue.severity === 'low' ? 'text-blue-500' : 'text-gray-500'
+                            }`} />
+                            <h3 className="font-semibold text-gray-900">{issue.type}</h3>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className={`${
+                              issue.severity === 'high' ? 'bg-red-100 text-red-800' :
+                              issue.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                              issue.severity === 'low' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {issue.severity.toUpperCase()}
+                            </Badge>
+                            <Badge className={`${
+                              issue.status === 'resolved' ? 'bg-green-100 text-green-800' :
+                              issue.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {issue.status.toUpperCase()}
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Description:</p>
+                            <p className="text-sm text-gray-600">{issue.description}</p>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Affected Products:</p>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {issue.affectedProducts.map((product, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs">
+                                    {product}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Reported Date:</p>
+                              <p className="text-sm text-gray-600">{new Date(issue.reportedDate).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Business Impact:</p>
+                            <p className="text-sm text-gray-600">{issue.impact}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2 pt-2 border-t">
+                          <Button size="sm" variant="outline">
+                            <MessageCircle className="h-4 w-4 mr-1" />
+                            Contact Supplier
+                          </Button>
+                          {issue.status !== 'resolved' && (
+                            <Button size="sm" variant="outline">
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Mark Resolved
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Active Issues</h3>
+                    <p className="text-gray-600">This supplier currently has no reported issues or problems.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Benefits Tab */}
           <TabsContent value="benefits" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -808,53 +913,71 @@ const SupplierDetails = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <DollarSign className="h-4 w-4 text-green-600" />
-                        <h4 className="font-semibold text-green-800">Cost Efficiency</h4>
-                      </div>
-                      <p className="text-sm text-green-700">
-                        {supplier.profitMargin && supplier.profitMargin > 20 
-                          ? `Excellent profit margins of ${supplier.profitMargin}% offering competitive pricing while maintaining quality standards.`
-                          : 'Competitive pricing structure with potential for bulk discounts and long-term contract benefits.'}
-                      </p>
-                    </div>
-                    
-                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Package className="h-4 w-4 text-blue-600" />
-                        <h4 className="font-semibold text-blue-800">Product Quality</h4>
-                      </div>
-                      <p className="text-sm text-blue-700">
-                        {supplier.productQuality && supplier.productQuality > 85
-                          ? `Superior product quality score of ${supplier.productQuality}/100 ensuring consistent customer satisfaction.`
-                          : 'Reliable product quality with established quality control processes and certifications.'}
-                      </p>
-                    </div>
-                    
-                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MapPin className="h-4 w-4 text-purple-600" />
-                        <h4 className="font-semibold text-purple-800">Strategic Location</h4>
-                      </div>
-                      <p className="text-sm text-purple-700">
-                        Located within {supplier.deliveryRadius}km delivery radius, enabling rapid fulfillment and reduced logistics costs.
-                      </p>
-                    </div>
-                    
-                    {supplier.sustainabilityScore && supplier.sustainabilityScore > 70 && (
-                      <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <CheckCircle className="h-4 w-4 text-emerald-600" />
-                          <h4 className="font-semibold text-emerald-800">Sustainability Leadership</h4>
+                  {supplier.benefits && supplier.benefits.length > 0 ? (
+                    <div className="space-y-4">
+                      {supplier.benefits.map((benefit, index) => (
+                        <div key={index} className="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                            <h4 className="font-semibold text-green-800">{benefit.type}</h4>
+                          </div>
+                          <p className="text-sm text-green-700 mb-2">{benefit.description}</p>
+                          <div className="flex items-center justify-between">
+                            <Badge className="bg-green-100 text-green-800">{benefit.value}</Badge>
+                            <span className="text-xs text-green-600">{benefit.impact}</span>
+                          </div>
                         </div>
-                        <p className="text-sm text-emerald-700">
-                          High sustainability score of {supplier.sustainabilityScore}/100 supporting Walmart's environmental commitments and ESG goals.
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <DollarSign className="h-4 w-4 text-green-600" />
+                          <h4 className="font-semibold text-green-800">Cost Efficiency</h4>
+                        </div>
+                        <p className="text-sm text-green-700">
+                          {supplier.profitMargin && supplier.profitMargin > 20 
+                            ? `Excellent profit margins of ${supplier.profitMargin}% offering competitive pricing while maintaining quality standards.`
+                            : 'Competitive pricing structure with potential for bulk discounts and long-term contract benefits.'}
                         </p>
                       </div>
-                    )}
-                  </div>
+                      
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Package className="h-4 w-4 text-blue-600" />
+                          <h4 className="font-semibold text-blue-800">Product Quality</h4>
+                        </div>
+                        <p className="text-sm text-blue-700">
+                          {supplier.productQuality && supplier.productQuality > 85
+                            ? `Superior product quality score of ${supplier.productQuality}/100 ensuring consistent customer satisfaction.`
+                            : 'Reliable product quality with established quality control processes and certifications.'}
+                        </p>
+                      </div>
+                      
+                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <MapPin className="h-4 w-4 text-purple-600" />
+                          <h4 className="font-semibold text-purple-800">Strategic Location</h4>
+                        </div>
+                        <p className="text-sm text-purple-700">
+                          Located within {supplier.deliveryRadius}km delivery radius, enabling rapid fulfillment and reduced logistics costs.
+                        </p>
+                      </div>
+                      
+                      {supplier.sustainabilityScore && supplier.sustainabilityScore > 70 && (
+                        <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle className="h-4 w-4 text-emerald-600" />
+                            <h4 className="font-semibold text-emerald-800">Sustainability Leadership</h4>
+                          </div>
+                          <p className="text-sm text-emerald-700">
+                            High sustainability score of {supplier.sustainabilityScore}/100 supporting Walmart's environmental commitments and ESG goals.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
               

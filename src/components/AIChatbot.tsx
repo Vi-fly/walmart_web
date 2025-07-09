@@ -34,6 +34,16 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
   onToggle,
   className // Destructure the new className prop
 }) => {
+  const storeProblems = stores.flatMap(store => {
+    if (store.problems && store.problems.products) {
+      return store.problems.products.map(problem => ({
+        storeId: store.id,
+        storeName: store.name,
+        ...problem
+      }));
+    }
+    return [];
+  });
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -49,25 +59,70 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
     ));
   };
 
+  const renderProblems = () => {
+    return storeProblems.map(problem => (
+      <div key={problem.storeId + problem.category} className="mb-4">
+        <h3 className="font-bold">{problem.storeName} - {problem.category}</h3>
+        <p>{problem.description}</p>
+        <p>Status: {problem.status}</p>
+      </div>
+    ));
+  };
+
   useEffect(() => {
-    if (isOpen && !sessionId && supplier) {
+    if (isOpen && !sessionId && (supplier || (stores && stores.length > 0))) {
       initializeChat();
     }
-  }, [isOpen, supplier?.id]);
+  }, [isOpen, supplier?.id, stores]);
+
+  // Update context when supplier or store changes
+  useEffect(() => {
+    if (sessionId && isOpen && (supplier || (stores && stores.length > 0))) {
+      updateChatContext();
+    }
+  }, [supplier?.id, stores, isAlternative, sessionId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
   const initializeChat = async () => {
-    if (!supplier) return;
-    
+    if (!supplier && (!stores || stores.length === 0)) return;
+
     try {
+      const contextSupplier = supplier || {
+        id: 'store-context',
+        name: stores[0]?.name || 'Store',
+        category: 'General' as any,
+        coordinates: stores[0]?.coordinates || [0, 0],
+        riskScore: stores[0]?.riskScore || 0,
+        riskBreakdown: {
+          financial: 0,
+          quality: 0,
+          delivery: 0,
+          compliance: 0,
+          sustainability: 0,
+          customerFeedback: 0
+        },
+        products: [],
+        deliveryRadius: 0,
+        monthlyVolume: 0,
+        contractValue: 0,
+        certifications: [],
+        lastAudit: '',
+        performanceTrend: 'stable' as any,
+        contact: { name: '', email: '', phone: '' },
+        address: '',
+        establishedYear: 0,
+        employeeCount: 0
+      };
+      
       const newSessionId = await aiChatService.initializeSession(
-        supplier.id,
-        supplier,
+        contextSupplier.id,
+        contextSupplier,
         stores,
-        isAlternative
+        isAlternative,
+        stores[0]?.id // Use the selected store ID or the first store
       );
       setSessionId(newSessionId);
       
@@ -75,7 +130,9 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
       const welcomeMessage: ChatMessage = {
         id: `welcome-${Date.now()}`,
         role: 'assistant',
-        content: `Hello! I'm your AI assistant for ${supplier.name}. I can help you analyze ${isAlternative ? 'this alternative supplier\'s benefits and implementation strategy' : 'current performance, risks, and optimization opportunities'}. What would you like to know?`,
+        content: supplier 
+          ? `Hello! I'm your AI assistant for ${supplier.name}. I can help you analyze ${isAlternative ? 'this alternative supplier\'s benefits and implementation strategy' : 'supplier performance and potential issues'}. What would you like to know?`
+          : `Hello! I'm your AI assistant for ${stores[0]?.name || 'this store'}. I can help you analyze store operations, supplier performance, and current issues. What would you like to know?`,
         timestamp: new Date()
       };
       setMessages([welcomeMessage]);
@@ -84,8 +141,48 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
     }
   };
 
-  const scrollToBottom = () => {
+  const scrollToBottom = () :void => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const updateChatContext = async () => {
+    if (!sessionId || (!supplier && (!stores || stores.length === 0))) return;
+
+    try {
+      const contextSupplier = supplier || {
+        id: 'store-context',
+        name: stores[0]?.name || 'Store',
+        category: 'General' as any,
+        coordinates: stores[0]?.coordinates || [0, 0],
+        riskScore: stores[0]?.riskScore || 0,
+        riskBreakdown: {
+          financial: 0,
+          quality: 0,
+          delivery: 0,
+          compliance: 0,
+          sustainability: 0,
+          customerFeedback: 0
+        },
+        products: [],
+        deliveryRadius: 0,
+        monthlyVolume: 0,
+        contractValue: 0,
+        certifications: [],
+        lastAudit: '',
+        performanceTrend: 'stable' as any,
+        contact: { name: '', email: '', phone: '' },
+        address: '',
+        establishedYear: 0,
+        employeeCount: 0
+      };
+
+      const success = await aiChatService.updateSessionContext(sessionId, contextSupplier, stores, isAlternative, stores[0]?.id);
+      if (success) {
+        setMessages([...aiChatService.getSession(sessionId)?.messages || []]);
+      }
+    } catch (error) {
+      console.error('Failed to update chat context:', error);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -122,22 +219,44 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
       handleSendMessage();
     }
   };
-
+  
   const getQuickQuestions = () => {
-    if (isAlternative) {
+    if (!supplier && stores && stores.length > 0) {
+      // Store context questions
       return [
-        'What are the key advantages of this supplier?',
+        'What is the name of the store?',
+        'List of suppliers for this store',
+        'What are the current store issues?',
+        'How can we improve store performance?'
+      ];
+    } else if (isAlternative) {
+      // Alternative supplier questions
+      return [
+        'What are the key benefits of this supplier?',
         'How does this compare to current suppliers?',
         'What are the implementation costs?',
         'What risks should we consider?'
       ];
     } else {
-      return [
+      // Current supplier questions
+      const hasIssues = supplier?.issues && supplier.issues.length > 0;
+      const baseQuestions = [
+        'What is the name of this supplier?',
         'What are the main performance issues?',
         'How can we reduce supply chain risks?',
-        'What cost optimization opportunities exist?',
-        'How is the quality performance?'
+        'What cost optimization opportunities exist?'
       ];
+      
+      if (hasIssues) {
+        return [
+          ...baseQuestions,
+          'What are the current supplier issues?',
+          'How can we resolve these problems?',
+          'What\'s the impact on store operations?'
+        ];
+      }
+      
+      return baseQuestions;
     }
   };
 
@@ -146,7 +265,7 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
     inputRef.current?.focus();
   };
 
-  if (!isOpen || !supplier) {
+  if (!isOpen || (!supplier && (!stores || stores.length === 0))) {
     return null;
   }
 
@@ -160,7 +279,7 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
             <Bot className="h-5 w-5" />
             <div>
               <CardTitle className="text-sm font-medium">AI Assistant</CardTitle>
-              <p className="text-xs opacity-90">{supplier?.name || 'No supplier selected'}</p>
+              <p className="text-xs opacity-90">{supplier?.name || (stores && stores.length > 0 ? stores[0].name : 'No context selected')}</p>
             </div>
           </div>
           <div className="flex items-center gap-1">

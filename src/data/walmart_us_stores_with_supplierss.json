@@ -10,32 +10,32 @@
       "suppliers": [
         {
           "id": "SUP001",
-          "name": "Green Fields",
-          "supplies": ["Vegetables", "Snacks"],
-          "latitude": 40.7500,
-          "longitude": -73.9700,
+          "name": "Green Fields Organic",
+          "supplies": ["Vegetables", "Fruits", "Organic Produce"],
+          "latitude": 42.3601,
+          "longitude": -71.0589,
           "performanceScore": 75,
           "parameters": {
-            "sustainabilityScore": 90,
-            "carbonFootprint": 0.05,
-            "packagingQuality": 95,
+            "sustainabilityScore": 95,
+            "carbonFootprint": 0.03,
+            "packagingQuality": 98,
             "geographicalProximity": 15,
             "compliance": 100,
-            "consumerTrends": 0.8,
-            "riskScore": 20,
-            "localRelevance": 0.7,
-            "productQuality": 85,
-            "availability": 90,
-            "profitMargin": 15,
-            "brandRecognition": 60
+            "consumerTrends": 0.9,
+            "riskScore": 15,
+            "localRelevance": 0.8,
+            "productQuality": 92,
+            "availability": 95,
+            "profitMargin": 12,
+            "brandRecognition": 75
           }
         },
         {
           "id": "SUP002",
           "name": "Local Dairy Co",
-          "supplies": ["Dairy", "Beverages"],
-          "latitude": 40.7000,
-          "longitude": -74.0100,
+          "supplies": ["Dairy", "Beverages", "Milk Products"],
+          "latitude": 39.9526,
+          "longitude": -75.1652,
           "performanceScore": 80,
           "parameters": {
             "sustainabilityScore": 70,
@@ -48,16 +48,16 @@
             "localRelevance": 0.95,
             "productQuality": 88,
             "availability": 92,
-            "profitMargin": 12,
+            "profitMargin": 15,
             "brandRecognition": 50
           }
         },
         {
           "id": "SUP003",
-          "name": "Quality Farms",
-          "supplies": ["Fruits", "Bakery"],
-          "latitude": 40.7800,
-          "longitude": -73.9500,
+          "name": "Quality Farms Premium",
+          "supplies": ["Fruits", "Bakery", "Artisan Bread"],
+          "latitude": 43.0642,
+          "longitude": -87.9073,
           "performanceScore": 77,
           "parameters": {
             "sustainabilityScore": 65,
@@ -72,6 +72,116 @@
             "availability": 90,
             "profitMargin": 18,
             "brandRecognition": 70
+          }
+        },
+        {
+          "id": "SUP004",
+          "name": "Tech Solutions Inc",
+          "supplies": ["Electronics", "Appliances", "Smart Devices"],
+          "latitude": 40.7589,
+          "longitude": -80.9851,
+          "performanceScore": 88,
+          "parameters": {
+            "sustainabilityScore": 75,
+            "carbonFootprint": 0.08,
+            "packagingQuality": 85,
+            "geographicalProximity": 5,
+            "compliance": 100,
+            "consumerTrends": 0.95,
+            "riskScore": 18,
+            "localRelevance": 0.9,
+            "productQuality": 95,
+            "availability": 88,
+            "profitMargin": 25,
+            "brandRecognition": 85
+          }
+        },
+        {
+          "id": "SUP005",
+          "name": "Fashion Forward",
+          "supplies": ["Clothing", "Accessories", "Footwear"],
+          "latitude": 39.7505,
+          "longitude": -75.9934,
+          "performanceScore": 82,
+          "parameters": {
+            "sustainabilityScore": 60,
+            "carbonFootprint": 0.15,
+            "packagingQuality": 75,
+            "geographicalProximity": 8,
+            "compliance": 95,
+            "consumerTrends": 0.92,
+            "riskScore": 28,
+            "localRelevance": 0.85,
+            "productQuality": 90,
+            "availability": 85,
+            "profitMargin": 30,
+            "brandRecognition": 80
+          }
+        },
+        {
+          "id": "SUP006",
+          "name": "Snack Masters",
+          "supplies": ["Snacks", "Beverages", "Energy Drinks"],
+          "latitude": 60.7128,
+          "longitude": -74.0060,
+          "performanceScore": 85,
+          "parameters": {
+            "sustainabilityScore": 55,
+            "carbonFootprint": 0.18,
+            "packagingQuality": 70,
+            "geographicalProximity": 2,
+            "compliance": 100,
+            "consumerTrends": 0.88,
+            "riskScore": 22,
+            "localRelevance": 0.98,
+            "productQuality": 85,
+            "availability": 95,
+            "profitMargin": 35,
+            "brandRecognition": 90
+          }
+        },
+        {
+          "id": "SUP007",
+          "name": "Home Essentials",
+          "supplies": ["Home Goods", "Kitchenware", "Cleaning Supplies"],
+          "latitude": 40.9589,
+          "longitude": -73.9851,
+          "performanceScore": 78,
+          "parameters": {
+            "sustainabilityScore": 70,
+            "carbonFootprint": 0.12,
+            "packagingQuality": 80,
+            "geographicalProximity": 6,
+            "compliance": 100,
+            "consumerTrends": 0.85,
+            "riskScore": 25,
+            "localRelevance": 0.88,
+            "productQuality": 87,
+            "availability": 90,
+            "profitMargin": 20,
+            "brandRecognition": 65
+          }
+        },
+        {
+          "id": "SUP008",
+          "name": "Health & Beauty Pro",
+          "supplies": ["Personal Care", "Beauty Products", "Vitamins"],
+          "latitude": 40.7505,
+          "longitude": -75.9934,
+          "performanceScore": 83,
+          "parameters": {
+            "sustainabilityScore": 65,
+            "carbonFootprint": 0.14,
+            "packagingQuality": 85,
+            "geographicalProximity": 4,
+            "compliance": 100,
+            "consumerTrends": 0.9,
+            "riskScore": 20,
+            "localRelevance": 0.92,
+            "productQuality": 93,
+            "availability": 88,
+            "profitMargin": 28,
+            "brandRecognition": 75
           }
         }
       ]
@@ -88,8 +198,8 @@
           "id": "SUP004",
           "name": "Eco Growers",
           "supplies": ["Vegetables", "Fruits"],
-          "latitude": 34.0700,
-          "longitude": -118.2500,
+          "latitude": 36.1627,
+          "longitude": -115.1391,
           "performanceScore": 70,
           "parameters": {
             "sustainabilityScore": 85,
@@ -110,8 +220,8 @@
           "id": "SUP005",
           "name": "Profit Kings",
           "supplies": ["Snacks", "Beverages"],
-          "latitude": 34.0300,
-          "longitude": -118.2800,
+          "latitude": 32.7157,
+          "longitude": -117.1611,
           "performanceScore": 85,
           "parameters": {
             "sustainabilityScore": 55,
@@ -132,8 +242,8 @@
           "id": "SUP006",
           "name": "West Coast Brands",
           "supplies": ["Clothing", "Electronics"],
-          "latitude": 34.0900,
-          "longitude": -118.2200,
+          "latitude": 37.4419,
+          "longitude": -122.1430,
           "performanceScore": 90,
           "parameters": {
             "sustainabilityScore": 75,
@@ -164,8 +274,8 @@
           "id": "SUP007",
           "name": "Midwest Harvest",
           "supplies": ["Vegetables", "Grains"],
-          "latitude": 41.9000,
-          "longitude": -87.6500,
+          "latitude": 39.7391,
+          "longitude": -104.9847,
           "performanceScore": 78,
           "parameters": {
             "sustainabilityScore": 80,
@@ -186,8 +296,8 @@
           "id": "SUP008",
           "name": "Quality Goods Inc",
           "supplies": ["Canned Goods", "Snacks"],
-          "latitude": 41.8500,
-          "longitude": -87.6800,
+          "latitude": 44.9778,
+          "longitude": -93.2650,
           "performanceScore": 80,
           "parameters": {
             "sustainabilityScore": 65,

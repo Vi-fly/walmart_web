@@ -13,7 +13,13 @@ import {
   Clock,
   DollarSign,
   MapPin,
-  FileText
+  FileText,
+  Truck,
+  ShoppingCart,
+  Package,
+  Zap,
+  ChevronRight,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadMockData } from '@/data/mockData';
@@ -59,7 +65,66 @@ const Dashboard = () => {
           qualityScore: avgQuality,
           contractsExpiring: 5 // Placeholder
         });
-        setAlerts([]); // Placeholder for mock alerts
+        // Add hardcoded real-time alerts for stores, products, and supply chain
+        const hardcodedAlerts = [
+          {
+            id: 'alert-1',
+            type: 'critical',
+            message: 'Store #1247 - Critical inventory shortage for frozen products',
+            timestamp: new Date().toISOString(),
+            category: 'store'
+          },
+          {
+            id: 'alert-2',
+            type: 'warning',
+            message: 'Supply chain disruption - Shipment from Pacific Fresh delayed by 2 days',
+            timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+            category: 'supply_chain'
+          },
+          {
+            id: 'alert-3',
+            type: 'info',
+            message: 'Product recall alert - Batch #XY789 organic apples quality issue',
+            timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+            category: 'product'
+          },
+          {
+            id: 'alert-4',
+            type: 'warning',
+            message: 'Store #2156 - Temperature sensor malfunction in dairy section',
+            timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+            category: 'store'
+          },
+          {
+            id: 'alert-5',
+            type: 'success',
+            message: 'New England Farms - Sustainable certification renewed successfully',
+            timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+            category: 'supply_chain'
+          },
+          {
+            id: 'alert-6',
+            type: 'critical',
+            message: 'Supply chain risk - Eco Harvest Organic compliance audit failed',
+            timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+            category: 'supply_chain'
+          },
+          {
+            id: 'alert-7',
+            type: 'info',
+            message: 'Product demand spike - Electronics category up 23% this week',
+            timestamp: new Date(Date.now() - 75 * 60 * 1000).toISOString(),
+            category: 'product'
+          },
+          {
+            id: 'alert-8',
+            type: 'warning',
+            message: 'Store #3421 - Staff shortage affecting customer service levels',
+            timestamp: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
+            category: 'store'
+          }
+        ];
+        setAlerts(hardcodedAlerts);
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
         setStores([]);
@@ -149,19 +214,19 @@ const Dashboard = () => {
 
   if (user?.role === 'admin') {
     return (
-      <div className="p-6 space-y-6 animate-fade-in">
+      <div className="p-4 lg:p-6 space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Regional Admin Dashboard</h1>
-            <p className="text-muted-foreground">Monitor supplier networks and risk management</p>
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Admin Dashboard</h1>
+            <p className="text-sm text-muted-foreground">Monitor supplier networks and risk management</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
               <FileText className="h-4 w-4 mr-2" />
-              Generate Report
+              Export
             </Button>
-            <Button size="sm" className="gradient-walmart">
+            <Button size="sm" className="bg-walmart-blue hover:bg-walmart-blue/90">
               <MapPin className="h-4 w-4 mr-2" />
               View Map
             </Button>
@@ -169,7 +234,7 @@ const Dashboard = () => {
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           <Card className="metric-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Suppliers</CardTitle>
@@ -234,7 +299,7 @@ const Dashboard = () => {
         </div>
 
         {/* Charts and Analytics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
           {/* Risk Score Trend */}
           <Card>
             <CardHeader>
@@ -294,7 +359,7 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Activity and Alerts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Top Performing Suppliers */}
           <Card>
             <CardHeader>
@@ -320,7 +385,6 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-
           {/* Recent Alerts */}
           <Card>
             <CardHeader>
@@ -332,24 +396,85 @@ const Dashboard = () => {
                 {alerts.slice(0, 5).map((alert) => (
                   <div key={alert.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                     <div className={`p-1 rounded-full ${
-                      alert.type === 'critical' ? 'bg-red-100 text-red-600' : // Changed 'error' to 'critical'
+                      alert.type === 'critical' ? 'bg-red-100 text-red-600' :
                         alert.type === 'warning' ? 'bg-yellow-100 text-yellow-600' :
-                          alert.type === 'info' ? 'bg-blue-100 text-blue-600' : // Changed 'success' to 'info'
-                            'bg-gray-100 text-gray-600' // Default for unknown types
+                          alert.type === 'info' ? 'bg-blue-100 text-blue-600' :
+                            'bg-gray-100 text-gray-600'
                       }`}>
                       {alert.type === 'critical' && <AlertTriangle className="h-4 w-4" />}
                       {alert.type === 'warning' && <Clock className="h-4 w-4" />}
                       {alert.type === 'info' && <Shield className="h-4 w-4" />}
-                      {/* Removed success icon as 'success' type is not in mockAlerts */}
+                      {alert.type === 'success' && <CheckCircle className="h-4 w-4" />}
                     </div>
                     <div className="flex-1">
-                      <div className="font-medium text-sm">{alert.message}</div> {/* Changed alert.title to alert.message */}
+                      <div className="font-medium text-sm">{alert.message}</div>
                       <div className="text-xs text-muted-foreground mt-1">
                         {new Date(alert.timestamp).toLocaleDateString()} {new Date(alert.timestamp).toLocaleTimeString()}
                       </div>
                     </div>
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+          {/* Real-time Supply Chain Activities */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-blue-600" />
+                Live Supply Chain
+              </CardTitle>
+              <CardDescription>Real-time updates across stores, products & supply chain</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                  <div className="p-1 rounded-full bg-green-100 text-green-600">
+                    <Truck className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">Pacific Fresh shipment arrived</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Just now • 2,500 units delivered
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                  <div className="p-1 rounded-full bg-blue-100 text-blue-600">
+                    <ShoppingCart className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">Store #1534 inventory restocked</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      2 min ago • Electronics dept
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                  <div className="p-1 rounded-full bg-purple-100 text-purple-600">
+                    <Package className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">Quality check completed</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      5 min ago • Organic produce batch
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                  <div className="p-1 rounded-full bg-yellow-100 text-yellow-600">
+                    <Zap className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">Demand forecast updated</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      8 min ago • Holiday season prep
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

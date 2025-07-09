@@ -9,6 +9,26 @@
       "longitude": -73.9700,
       "performanceScore": 82,
       "clusterId": "Sustainability",
+      "benefits": [
+        {
+          "type": "Environmental",
+          "description": "50% lower carbon footprint than current supplier",
+          "value": "50% reduction",
+          "impact": "Significant improvement in sustainability metrics"
+        },
+        {
+          "type": "Quality",
+          "description": "Organic certification and premium packaging",
+          "value": "98% quality rating",
+          "impact": "Enhanced customer satisfaction and reduced returns"
+        },
+        {
+          "type": "Reliability",
+          "description": "99.5% on-time delivery rate",
+          "value": "99.5% OTD",
+          "impact": "Reduced stockouts and improved inventory management"
+        }
+      ],
       "parameters": {
         "performanceScore": 92,
         "carbonFootprint": 0.04,

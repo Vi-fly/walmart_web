@@ -3,9 +3,10 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'supplier' | 'executive';
+  role: 'admin' | 'supplier' | 'executive' | 'store';
   avatar?: string;
   lastLogin?: Date;
+  storeId?: string; // For store users
 }
 
 export interface Store {
@@ -24,6 +25,38 @@ export interface Store {
   phone: string;
   openingHours: string;
   issues?: string[];
+  // Enhanced problem tracking
+  problems?: {
+    products: {
+      category: string;
+      description: string;
+      severity: 'low' | 'medium' | 'high' | 'critical';
+      reportedDate: string;
+      status: 'open' | 'in-progress' | 'resolved';
+      affectedSuppliers: string[];
+    }[];
+    services: {
+      category: string;
+      description: string;
+      severity: 'low' | 'medium' | 'high' | 'critical';
+      reportedDate: string;
+      status: 'open' | 'in-progress' | 'resolved';
+      customerImpact: number; // 1-10 scale
+    }[];
+    operational: {
+      category: string;
+      description: string;
+      severity: 'low' | 'medium' | 'high' | 'critical';
+      reportedDate: string;
+      status: 'open' | 'in-progress' | 'resolved';
+      cost: number;
+    }[];
+  };
+  supplierAccess: {
+    supplierId: string;
+    accessLevel: 'read' | 'write' | 'full';
+    sharedData: string[];
+  }[];
 }
 
 export interface Supplier {
@@ -55,6 +88,23 @@ export interface Supplier {
   address: string;
   establishedYear: number;
   employeeCount: number;
+  // Issues and problems specific to this supplier
+  issues?: {
+    type: string;
+    description: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    reportedDate: string;
+    status: 'open' | 'in-progress' | 'resolved';
+    affectedProducts: string[];
+    impact: string;
+  }[];
+  // Benefits for alternate suppliers
+  benefits?: {
+    type: string;
+    description: string;
+    value: string;
+    impact: string;
+  }[];
   // New cluster-specific metrics
   sustainabilityScore?: number;
   carbonFootprint?: number;

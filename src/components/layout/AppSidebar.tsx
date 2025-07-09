@@ -19,7 +19,11 @@ import {
   Shield,
   FileText,
   Settings,
-  Bell
+  Bell,
+  AlertTriangle,
+  Package,
+  TrendingUp,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -63,6 +67,16 @@ const AppSidebar = () => {
         { title: "Strategic View", url: "/strategic", icon: MapPin },
         { title: "KPI Monitor", url: "/kpi", icon: Shield },
         { title: "Executive Reports", url: "/executive-reports", icon: FileText },
+      ];
+    } else if (user?.role === 'store') {
+      return [
+        ...baseItems,
+        { title: "Problems", url: "/problems", icon: AlertTriangle },
+        { title: "Suppliers", url: "/suppliers", icon: Users },
+        { title: "Inventory", url: "/inventory", icon: Package },
+        { title: "Performance", url: "/performance", icon: TrendingUp },
+        { title: "Communication", url: "/communication", icon: MessageSquare },
+        { title: "Profile", url: "/profile", icon: Settings },
       ];
     }
 

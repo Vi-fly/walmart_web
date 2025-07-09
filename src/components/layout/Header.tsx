@@ -41,7 +41,7 @@ const Header = () => {
   return (
     <header className="h-16 flex items-center justify-between px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="md:hidden" />
+        <SidebarTrigger className="h-9 w-9 p-0" />
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-walmart-blue rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">W</span>

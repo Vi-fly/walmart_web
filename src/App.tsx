@@ -87,6 +87,19 @@ const AppRoutes = () => {
         </>
       )}
       
+      {/* Store-only routes */}
+      {user.role === 'store' && (
+        <>
+          <Route path="/problems" element={<Dashboard />} />
+          <Route path="/suppliers" element={<Suppliers />} />
+          <Route path="/supplier/:supplierId" element={<SupplierDetails />} />
+          <Route path="/inventory" element={<Dashboard />} />
+          <Route path="/performance" element={<Dashboard />} />
+          <Route path="/communication" element={<Dashboard />} />
+          <Route path="/profile" element={<Settings />} />
+        </>
+      )}
+      
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
